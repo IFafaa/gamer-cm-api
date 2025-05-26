@@ -1,26 +1,29 @@
+import axios from 'axios';
 import { CommunitiesResponse, CreateCommunityRequest, ErrorResponse } from "@/types/community";
 
-export async function getCommunities(): Promise<CommunitiesResponse> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/communities`);
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch communities');
-  }
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
 
-  return response.json();
+export async function getCommunities(): Promise<CommunitiesResponse> {
+  try {
+    const { data } = await api.get('/communities');
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch communities');
+    }
+    throw error;
+  }
 }
 
 export async function createCommunity(data: CreateCommunityRequest): Promise<void> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/communities`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error: ErrorResponse = await response.json();
-    throw new Error(error.message);
+  try {
+    await api.post('/communities', data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to create community');
+    }
+    throw error;
   }
 } 

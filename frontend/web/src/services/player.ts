@@ -1,0 +1,37 @@
+import axios from 'axios';
+
+interface CreatePlayerParams {
+  nickname: string;
+  community_id: number;
+}
+
+interface Player {
+  id: number;
+  nickname: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiResponse<T> {
+  data: T;
+  timestamp: string;
+}
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+export async function createPlayer({ nickname, community_id }: CreatePlayerParams): Promise<ApiResponse<Player>> {
+  try {
+    const { data } = await api.post('/players', {
+      nickname,
+      community_id,
+    });
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to create player');
+    }
+    throw error;
+  }
+} 
