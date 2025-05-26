@@ -5,8 +5,10 @@ import { Community } from "@/types/community";
 import { getCommunities } from "@/services/community";
 import { CreateCommunityDialog } from "./CreateCommunityDialog";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function Sidebar() {
+  const router = useRouter();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,7 @@ export function Sidebar() {
           {communities.map((community) => (
             <button
               key={community.id}
+              onClick={() => router.push(`/community/${community.id}`)}
               className="w-12 h-12 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 
                        text-sidebar-accent-foreground font-medium flex items-center justify-center
                        transition-colors duration-200 cursor-pointer"
