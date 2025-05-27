@@ -1,10 +1,22 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CreatePlayerDialog } from '@/components/CreatePlayerDialog';
 import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { deletePlayer } from '@/services/player';
 
 interface Player {
   id: number;
@@ -36,10 +48,25 @@ interface CommunityContentProps {
 
 export function CommunityContent({ community }: CommunityContentProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const router = useRouter();
 
   const refreshCommunity = () => {
     router.refresh();
+  };
+
+  const handleDeletePlayer = async () => {
+    if (!playerToDelete) return;
+
+    try {
+      await deletePlayer(playerToDelete.id);
+      toast.success('Player deleted successfully');
+      refreshCommunity();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete player');
+    } finally {
+      setPlayerToDelete(null);
+    }
   };
 
   return (
@@ -73,9 +100,17 @@ export function CommunityContent({ community }: CommunityContentProps) {
               {community.players.map((player) => (
                 <div
                   key={player.id}
-                  className="rounded-md border p-3 text-muted-foreground"
+                  className="rounded-md border p-3 text-muted-foreground flex items-center justify-between"
                 >
-                  {player.nickname}
+                  <span>{player.nickname}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer"
+                    onClick={() => setPlayerToDelete(player)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -123,6 +158,27 @@ export function CommunityContent({ community }: CommunityContentProps) {
         onSuccess={refreshCommunity}
         communityId={community.id}
       />
+
+      <AlertDialog open={!!playerToDelete} onOpenChange={() => setPlayerToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the player
+              {playerToDelete && ` "${playerToDelete.nickname}"`}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePlayer}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

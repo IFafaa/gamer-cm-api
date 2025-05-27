@@ -34,4 +34,15 @@ export async function createPlayer({ nickname, community_id }: CreatePlayerParam
     }
     throw error;
   }
+}
+
+export async function deletePlayer(playerId: number): Promise<void> {
+  try {
+    await api.delete(`/players/${playerId}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to delete player');
+    }
+    throw error;
+  }
 } 
