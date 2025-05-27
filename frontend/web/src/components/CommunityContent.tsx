@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CreatePlayerDialog } from '@/components/CreatePlayerDialog';
+import { CreateTeamDialog } from '@/components/CreateTeamDialog';
 import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
@@ -48,6 +49,7 @@ interface CommunityContentProps {
 
 export function CommunityContent({ community }: CommunityContentProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const router = useRouter();
 
@@ -117,9 +119,19 @@ export function CommunityContent({ community }: CommunityContentProps) {
           </div>
 
           <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-2xl font-semibold text-foreground">
-              Teams ({community.teams.length})
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold text-foreground">
+                Teams ({community.teams.length})
+              </h2>
+              <Button
+                onClick={() => setIsCreateTeamDialogOpen(true)}
+                size="sm"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Create Team
+              </Button>
+            </div>
             <div className="space-y-4">
               {community.teams.map((team) => (
                 <div
@@ -155,6 +167,13 @@ export function CommunityContent({ community }: CommunityContentProps) {
       <CreatePlayerDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={refreshCommunity}
+        communityId={community.id}
+      />
+
+      <CreateTeamDialog
+        isOpen={isCreateTeamDialogOpen}
+        onClose={() => setIsCreateTeamDialogOpen(false)}
         onSuccess={refreshCommunity}
         communityId={community.id}
       />
