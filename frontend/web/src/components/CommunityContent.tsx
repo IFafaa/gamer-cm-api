@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { CreatePlayerDialog } from '@/components/CreatePlayerDialog';
-import { CreateTeamDialog } from '@/components/CreateTeamDialog';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CreatePlayerDialog } from "@/components/CreatePlayerDialog";
+import { CreateTeamDialog } from "@/components/CreateTeamDialog";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { deletePlayer } from '@/services/player';
+import { deletePlayer } from "@/services/player";
 
 interface Player {
   id: number;
@@ -62,10 +62,12 @@ export function CommunityContent({ community }: CommunityContentProps) {
 
     try {
       await deletePlayer(playerToDelete.id);
-      toast.success('Player deleted successfully');
+      toast.success("Player deleted successfully");
       refreshCommunity();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete player');
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete player"
+      );
     } finally {
       setPlayerToDelete(null);
     }
@@ -78,9 +80,7 @@ export function CommunityContent({ community }: CommunityContentProps) {
           <h1 className="mb-4 text-4xl font-bold text-foreground">
             {community.name}
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Community Details
-          </p>
+          <p className="text-lg text-muted-foreground">Community Details</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -104,7 +104,12 @@ export function CommunityContent({ community }: CommunityContentProps) {
                   key={player.id}
                   className="rounded-md border p-3 text-muted-foreground flex items-center justify-between"
                 >
-                  <span>{player.nickname}</span>
+                  <div className="flex flex-col">
+                    <span>{player.nickname}</span>
+                    <span className="text-xs text-muted-foreground/70">
+                      Joined {new Date(player.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -134,10 +139,7 @@ export function CommunityContent({ community }: CommunityContentProps) {
             </div>
             <div className="space-y-4">
               {community.teams.map((team) => (
-                <div
-                  key={team.id}
-                  className="rounded-md border p-4"
-                >
+                <div key={team.id} className="rounded-md border p-4">
                   <h3 className="mb-2 text-lg font-medium text-foreground">
                     {team.name}
                   </h3>
@@ -178,12 +180,16 @@ export function CommunityContent({ community }: CommunityContentProps) {
         communityId={community.id}
       />
 
-      <AlertDialog open={!!playerToDelete} onOpenChange={() => setPlayerToDelete(null)}>
+      <AlertDialog
+        open={!!playerToDelete}
+        onOpenChange={() => setPlayerToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the player
+              This action cannot be undone. This will permanently delete the
+              player
               {playerToDelete && ` "${playerToDelete.nickname}"`}.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -200,4 +206,4 @@ export function CommunityContent({ community }: CommunityContentProps) {
       </AlertDialog>
     </div>
   );
-} 
+}
