@@ -33,3 +33,16 @@ export async function createCommunity(
     throw error;
   }
 }
+
+export async function deleteCommunity(id: number): Promise<void> {
+  try {
+    await api.delete(`/communities/${id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to delete community"
+      );
+    }
+    throw error;
+  }
+}

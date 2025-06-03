@@ -5,10 +5,11 @@ import { Community } from "@/types/community";
 import { getCommunities } from "@/services/community";
 import { CreateCommunityDialog } from "./CreateCommunityDialog";
 import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export function Sidebar() {
 
   useEffect(() => {
     loadCommunities();
-  }, []);
+  }, [pathname]);
 
   if (loading) {
     return (

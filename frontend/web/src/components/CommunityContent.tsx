@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreatePlayerDialog } from "@/components/CreatePlayerDialog";
 import { CreateTeamDialog } from "@/components/CreateTeamDialog";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { deletePlayer } from "@/services/player";
+import { deleteCommunity } from "@/services/community";
 
 interface Player {
   id: number;
@@ -51,6 +52,8 @@ export function CommunityContent({ community }: CommunityContentProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+  const [isDeleteCommunityDialogOpen, setIsDeleteCommunityDialogOpen] =
+    useState(false);
   const router = useRouter();
 
   const refreshCommunity = () => {
@@ -73,14 +76,42 @@ export function CommunityContent({ community }: CommunityContentProps) {
     }
   };
 
+  const handleDeleteCommunity = async () => {
+    try {
+      await deleteCommunity(community.id);
+      toast.success("Community deleted successfully");
+      router.push("/home");
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete community"
+      );
+    } finally {
+      setIsDeleteCommunityDialogOpen(false);
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="mx-auto max-w-4xl space-y-8">
         <div className="rounded-lg border bg-card p-8 shadow-sm">
-          <h1 className="mb-4 text-4xl font-bold text-foreground">
-            {community.name}
-          </h1>
-          <p className="text-lg text-muted-foreground">Community Details</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="mb-4 text-4xl font-bold text-foreground">
+                {community.name}
+              </h1>
+              <p className="text-lg text-muted-foreground">Community Details</p>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => setIsDeleteCommunityDialogOpen(true)}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Community
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -197,6 +228,31 @@ export function CommunityContent({ community }: CommunityContentProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeletePlayer}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={isDeleteCommunityDialogOpen}
+        onOpenChange={setIsDeleteCommunityDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Community</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this community? This action cannot
+              be undone. All teams and players associated with this community
+              will be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCommunity}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
