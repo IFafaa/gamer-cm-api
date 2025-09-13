@@ -27,6 +27,7 @@ async fn main() {
     let addr = listener.local_addr().expect("Failed to get local address");
     println!("🚀 Server started successfully!");
     println!("🌐 Listening on http://{}", addr);
+    println!("📚 API Documentation available at http://{}/api-docs/", addr);
     axum::serve(listener, app)
         .await
         .expect("Failed to start server");

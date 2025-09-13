@@ -1,0 +1,658 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Gamer Community Management API",
+    "version": "1.0.0",
+    "description": "API to manage gaming communities, teams and parties",
+    "contact": {
+      "name": "Gamer CM Team",
+      "email": "fabriciotrab2005@gmail.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Communities",
+      "description": "Community management endpoints"
+    },
+    {
+      "name": "Players",
+      "description": "Player management endpoints"
+    },
+    {
+      "name": "Teams",
+      "description": "Team management endpoints"
+    },
+    {
+      "name": "Parties",
+      "description": "Party management endpoints"
+    }
+  ],
+  "paths": {
+    "/communities": {
+      "get": {
+        "tags": ["Communities"],
+        "summary": "Get all communities",
+        "responses": {
+          "200": {
+            "description": "List of communities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Community"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Communities"],
+        "summary": "Create a new community",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommunityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Community created successfully"
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/communities/{id}": {
+      "get": {
+        "tags": ["Communities"],
+        "summary": "Get community by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Community details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Community"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Communities"],
+        "summary": "Delete community",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Community deleted successfully"
+          },
+          "404": {
+            "description": "Community not found"
+          }
+        }
+      }
+    },
+    "/players": {
+      "post": {
+        "tags": ["Players"],
+        "summary": "Create a new player",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlayerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Player created successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/players/{id}": {
+      "delete": {
+        "tags": ["Players"],
+        "summary": "Delete player",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Player deleted successfully"
+          },
+          "404": {
+            "description": "Player not found"
+          }
+        }
+      }
+    },
+    "/teams": {
+      "post": {
+        "tags": ["Teams"],
+        "summary": "Create a new team",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Team created successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/teams/add-players": {
+      "patch": {
+        "tags": ["Teams"],
+        "summary": "Add players to team",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPlayersToTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Players added successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/teams/delete-players": {
+      "patch": {
+        "tags": ["Teams"],
+        "summary": "Remove players from team (soft delete)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletePlayersOfTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Team updated successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/parties": {
+      "get": {
+        "tags": ["Parties"],
+        "summary": "Get parties by community",
+        "parameters": [
+          {
+            "name": "community_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of parties",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Party"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Parties"],
+        "summary": "Create a new party",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Party created successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/parties/{id}": {
+      "delete": {
+        "tags": ["Parties"],
+        "summary": "Delete party",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Party deleted successfully"
+          },
+          "404": {
+            "description": "Party not found"
+          }
+        }
+      }
+    },
+    "/parties/end": {
+      "patch": {
+        "tags": ["Parties"],
+        "summary": "End a party and set winner",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndPartyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Party ended successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Community": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "My Gaming Community"
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Player"
+            }
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Team"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Player": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "nickname": {
+            "type": "string",
+            "example": "PlayerNickname"
+          },
+          "community_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Team Alpha"
+          },
+          "community_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Player"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Party": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "community_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "game_name": {
+            "type": "string",
+            "example": "Counter-Strike 2"
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Team"
+            }
+          },
+          "team_winner_id": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateCommunityDto": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "My Gaming Community"
+          }
+        }
+      },
+      "CreatePlayerDto": {
+        "type": "object",
+        "required": ["nickname", "community_id"],
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "PlayerNickname"
+          },
+          "community_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          }
+        }
+      },
+      "CreateTeamDto": {
+        "type": "object",
+        "required": ["name", "community_id"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "Team Alpha"
+          },
+          "community_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          }
+        }
+      },
+      "AddPlayersToTeamDto": {
+        "type": "object",
+        "required": ["team_id", "players_ids"],
+        "properties": {
+          "team_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "players_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "example": [2, 3, 4]
+          }
+        }
+      },
+      "DeletePlayersOfTeamDto": {
+        "type": "object",
+        "required": ["team_id", "player_ids"],
+        "properties": {
+          "team_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Team Alpha"
+          },
+          "player_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "example": [2, 3, 4],
+            "description": "IDs of players to KEEP in the team (others will be soft deleted)"
+          }
+        }
+      },
+      "CreatePartyDto": {
+        "type": "object",
+        "required": ["game_name", "teams_ids", "community_id"],
+        "properties": {
+          "game_name": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Counter-Strike 2"
+          },
+          "teams_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 2,
+            "example": [1, 2]
+          },
+          "community_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          }
+        }
+      },
+      "EndPartyDto": {
+        "type": "object",
+        "required": ["party_id"],
+        "properties": {
+          "party_id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "team_winner_id": {
+            "type": "integer",
+            "minimum": 1,
+            "nullable": true,
+            "example": 2
+          }
+        }
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Error message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  }
+}
