@@ -67,7 +67,7 @@ export function CreatePlayerDialog({
           </div>
           <div className="flex justify-end space-x-2">
             <Button
-              className="cursor-pointer"
+              className=""
               type="button"
               variant="outline"
               onClick={onClose}
@@ -76,7 +76,7 @@ export function CreatePlayerDialog({
               Cancel
             </Button>
             <Button
-              className="cursor-pointer"
+              className=""
               type="submit"
               disabled={isLoading}
             >

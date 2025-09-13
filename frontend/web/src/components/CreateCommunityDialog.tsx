@@ -57,7 +57,7 @@ export function CreateCommunityDialog({ isOpen, onClose, onSuccess }: CreateComm
               type="button"
               variant="outline"
               onClick={onClose}
-              className="cursor-pointer"
+              className=""
               disabled={isLoading}
             >
               Cancel
@@ -65,7 +65,7 @@ export function CreateCommunityDialog({ isOpen, onClose, onSuccess }: CreateComm
             <Button
               type="submit"
               disabled={isLoading}
-              className="cursor-pointer"
+              className=""
             >
               {isLoading ? "Creating..." : "Create Community"}
             </Button>

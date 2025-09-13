@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, X, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, X, Trash2, Users, Gamepad2, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreatePlayerDialog } from "@/components/CreatePlayerDialog";
 import { CreateTeamDialog } from "@/components/CreateTeamDialog";
+import { CreatePartyDialog } from "@/components/CreatePartyDialog";
+import { AddPlayersToTeamDialog } from "@/components/AddPlayersToTeamDialog";
+import { RemovePlayersFromTeamDialog } from "@/components/RemovePlayersFromTeamDialog";
+import { EndPartyDialog } from "@/components/EndPartyDialog";
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -19,30 +23,10 @@ import {
 import { toast } from "sonner";
 import { deletePlayer } from "@/services/player";
 import { deleteCommunity } from "@/services/community";
+import { getParties, deleteParty } from "@/services/party";
+import { Party } from "@/types/community";
 
-interface Player {
-  id: number;
-  nickname: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Team {
-  id: number;
-  name: string;
-  players: Player[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface Community {
-  id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  players: Player[];
-  teams: Team[];
-}
+import { Player, Team, Community } from "@/types/community";
 
 interface CommunityContentProps {
   community: Community;
@@ -51,13 +35,77 @@ interface CommunityContentProps {
 export function CommunityContent({ community }: CommunityContentProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false);
+  const [isCreatePartyDialogOpen, setIsCreatePartyDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
-  const [isDeleteCommunityDialogOpen, setIsDeleteCommunityDialogOpen] =
-    useState(false);
+  const [isDeleteCommunityDialogOpen, setIsDeleteCommunityDialogOpen] = useState(false);
+  const [selectedTeamForPlayers, setSelectedTeamForPlayers] = useState<Team | null>(null);
+  const [isAddPlayersDialogOpen, setIsAddPlayersDialogOpen] = useState(false);
+  const [isRemovePlayersDialogOpen, setIsRemovePlayersDialogOpen] = useState(false);
+  const [partyToEnd, setPartyToEnd] = useState<Party | null>(null);
+  const [isEndPartyDialogOpen, setIsEndPartyDialogOpen] = useState(false);
+  const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
+  const [isDeletePartyDialogOpen, setIsDeletePartyDialogOpen] = useState(false);
+  const [parties, setParties] = useState<Party[]>([]);
+  const [partiesLoading, setPartiesLoading] = useState(false);
   const router = useRouter();
 
   const refreshCommunity = () => {
     router.refresh();
+    loadParties();
+  };
+
+  const loadParties = useCallback(async () => {
+    setPartiesLoading(true);
+    try {
+      const response = await getParties();
+      // Filtrar partidas apenas desta comunidade
+      const communityParties = response.data.filter(party => party.community_id === community.id);
+      setParties(communityParties);
+    } catch (error) {
+      console.error('Failed to load parties:', error);
+    } finally {
+      setPartiesLoading(false);
+    }
+  }, [community.id]);
+
+  useEffect(() => {
+    loadParties();
+  }, [community.id, loadParties]);
+
+  const handleAddPlayersToTeam = (team: Team) => {
+    setSelectedTeamForPlayers(team);
+    setIsAddPlayersDialogOpen(true);
+  };
+
+  const handleRemovePlayersFromTeam = (team: Team) => {
+    setSelectedTeamForPlayers(team);
+    setIsRemovePlayersDialogOpen(true);
+  };
+
+  const handleEndParty = (party: Party) => {
+    setPartyToEnd(party);
+    setIsEndPartyDialogOpen(true);
+  };
+
+  const handleDeleteParty = (party: Party) => {
+    setPartyToDelete(party);
+    setIsDeletePartyDialogOpen(true);
+  };
+
+  const handleDeletePartyConfirm = async () => {
+    if (!partyToDelete) return;
+
+    try {
+      await deleteParty(partyToDelete.id);
+      toast.success("Party deleted successfully");
+      refreshCommunity();
+      setPartyToDelete(null);
+      setIsDeletePartyDialogOpen(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete party"
+      );
+    }
   };
 
   const handleDeletePlayer = async () => {
@@ -123,7 +171,7 @@ export function CommunityContent({ community }: CommunityContentProps) {
               <Button
                 onClick={() => setIsCreateDialogOpen(true)}
                 size="sm"
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Add Player
@@ -144,7 +192,7 @@ export function CommunityContent({ community }: CommunityContentProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     onClick={() => setPlayerToDelete(player)}
                   >
                     <X className="h-4 w-4" />
@@ -162,7 +210,7 @@ export function CommunityContent({ community }: CommunityContentProps) {
               <Button
                 onClick={() => setIsCreateTeamDialogOpen(true)}
                 size="sm"
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Create Team
@@ -171,17 +219,42 @@ export function CommunityContent({ community }: CommunityContentProps) {
             <div className="space-y-4">
               {community.teams.map((team) => (
                 <div key={team.id} className="rounded-md border p-4">
-                  <h3 className="mb-2 text-lg font-medium text-foreground">
-                    {team.name}
-                  </h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-medium text-foreground">
+                      {team.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddPlayersToTeam(team)}
+                        className="flex items-center gap-1"
+                      >
+                        <Users className="w-3 h-3" />
+                        Add
+                      </Button>
+                      {team.players.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRemovePlayersFromTeam(team)}
+                          className="flex items-center gap-1"
+                        >
+                          <X className="w-3 h-3" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                   <div className="space-y-1">
                     {team.players.length > 0 ? (
                       team.players.map((player) => (
                         <div
                           key={player.id}
-                          className="text-sm text-muted-foreground"
+                          className="text-sm text-muted-foreground flex items-center gap-2"
                         >
-                          • {player.nickname}
+                          <Users className="w-3 h-3" />
+                          {player.nickname}
                         </div>
                       ))
                     ) : (
@@ -193,6 +266,133 @@ export function CommunityContent({ community }: CommunityContentProps) {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Parties Section */}
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-foreground">
+              Parties ({parties.length})
+            </h2>
+            <Button
+              onClick={() => setIsCreatePartyDialogOpen(true)}
+              size="sm"
+              className="flex items-center gap-2 cursor-pointer"
+              disabled={community.teams.length < 2}
+            >
+              <Gamepad2 className="w-4 h-4" />
+              Create Party
+            </Button>
+          </div>
+          
+          {community.teams.length < 2 && (
+            <p className="text-sm text-muted-foreground mb-4">
+              You need at least 2 teams to create a party.
+            </p>
+          )}
+
+          <div className="space-y-4">
+            {partiesLoading ? (
+              <div className="animate-pulse space-y-2">
+                <div className="h-16 bg-muted rounded"></div>
+                <div className="h-16 bg-muted rounded"></div>
+              </div>
+            ) : parties.length === 0 ? (
+              <div className="text-center py-8">
+                <Gamepad2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No parties yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Create your first gaming party to start organizing matches.
+                </p>
+              </div>
+            ) : (
+              parties.map((party) => (
+                <div key={party.id} className="rounded-md border p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-medium text-foreground">
+                        {party.game_name}
+                      </h3>
+                      {party.finished_at ? (
+                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                          Finished
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                          Active
+                        </span>
+                    )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!party.finished_at && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEndParty(party)}
+                          className="flex items-center gap-1"
+                        >
+                          <Crown className="w-3 h-3" />
+                          End Party
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteParty(party)}
+                        className="flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    {party.teams.map((team) => (
+                      <div
+                        key={team.id}
+                        className={`flex items-center justify-between p-2 rounded ${
+                          party.team_winner_id === team.id 
+                            ? 'bg-green-100 border-2 border-green-300 shadow-sm' 
+                            : 'bg-muted/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {party.team_winner_id === team.id && (
+                            <Crown className="w-4 h-4 text-yellow-500" />
+                          )}
+                          <span className={`font-medium ${
+                            party.team_winner_id === team.id 
+                              ? 'text-green-800' 
+                              : 'text-foreground'
+                          }`}>
+                            {team.name}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            ({team.players.length} players)
+                          </span>
+                        </div>
+                        {party.team_winner_id === team.id && (
+                          <span className="text-sm font-bold text-green-800 bg-green-200 px-2 py-1 rounded-full">
+                            Winner!
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    Created: {new Date(party.created_at).toLocaleDateString()}
+                    {party.finished_at && (
+                      <span className="ml-4">
+                        Finished: {new Date(party.finished_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -210,6 +410,75 @@ export function CommunityContent({ community }: CommunityContentProps) {
         onSuccess={refreshCommunity}
         communityId={community.id}
       />
+
+      <CreatePartyDialog
+        isOpen={isCreatePartyDialogOpen}
+        onClose={() => setIsCreatePartyDialogOpen(false)}
+        onSuccess={refreshCommunity}
+        communityId={community.id}
+        availableTeams={community.teams}
+      />
+
+      {selectedTeamForPlayers && (
+        <>
+          <AddPlayersToTeamDialog
+            isOpen={isAddPlayersDialogOpen}
+            onClose={() => {
+              setIsAddPlayersDialogOpen(false);
+              setSelectedTeamForPlayers(null);
+            }}
+            onSuccess={refreshCommunity}
+            team={selectedTeamForPlayers}
+            availablePlayers={community.players}
+          />
+
+          <RemovePlayersFromTeamDialog
+            isOpen={isRemovePlayersDialogOpen}
+            onClose={() => {
+              setIsRemovePlayersDialogOpen(false);
+              setSelectedTeamForPlayers(null);
+            }}
+            onSuccess={refreshCommunity}
+            team={selectedTeamForPlayers}
+          />
+        </>
+      )}
+
+      {partyToEnd && (
+        <EndPartyDialog
+          isOpen={isEndPartyDialogOpen}
+          onClose={() => {
+            setIsEndPartyDialogOpen(false);
+            setPartyToEnd(null);
+          }}
+          onSuccess={refreshCommunity}
+          party={partyToEnd}
+        />
+      )}
+
+      <AlertDialog
+        open={isDeletePartyDialogOpen}
+        onOpenChange={() => {
+          setIsDeletePartyDialogOpen(false);
+          setPartyToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Party</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the party &quot;{partyToDelete?.game_name}&quot;? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePartyConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={!!playerToDelete}

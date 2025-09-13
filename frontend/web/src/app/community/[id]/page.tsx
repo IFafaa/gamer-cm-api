@@ -2,29 +2,7 @@ import { notFound } from 'next/navigation';
 import { CommunityContent } from '@/components/CommunityContent';
 import axios from 'axios';
 
-interface Player {
-  id: number;
-  nickname: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Team {
-  id: number;
-  name: string;
-  players: Player[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface Community {
-  id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  players: Player[];
-  teams: Team[];
-}
+import { Community } from "@/types/community";
 
 interface CommunityResponse {
   data: Community;

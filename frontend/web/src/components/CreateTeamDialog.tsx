@@ -73,14 +73,14 @@ export function CreateTeamDialog({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="cursor-pointer"
+              className=""
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="cursor-pointer"
+              className=""
             >
               {isLoading ? "Creating..." : "Create Team"}
             </Button>
