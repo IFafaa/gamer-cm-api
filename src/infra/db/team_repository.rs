@@ -20,9 +20,10 @@ impl PgTeamRepository {
         team_id: i32,
     ) -> anyhow::Result<Vec<Player>> {
         let rows = sqlx::query!(
-            "SELECT id, nickname, community_id, created_at, updated_at FROM players 
-             WHERE community_id = $1 AND enabled = true 
-             AND id IN (SELECT player_id FROM team_players WHERE team_id = $2)",
+            "SELECT p.id, p.nickname, p.community_id, p.created_at, p.updated_at, p.enabled
+             FROM players p
+             INNER JOIN team_players tp ON p.id = tp.player_id
+             WHERE p.community_id = $1 AND tp.team_id = $2 AND tp.enabled = true AND p.enabled = true",
             community_id,
             team_id
         )
@@ -37,7 +38,7 @@ impl PgTeamRepository {
                 community_id: p.community_id,
                 created_at: p.created_at,
                 updated_at: p.updated_at,
-                enabled: true,
+                enabled: p.enabled,
             })
             .collect())
     }
@@ -122,7 +123,7 @@ impl TeamRepository for PgTeamRepository {
 
     async fn save(&self, team: &Team) -> anyhow::Result<()> {
         sqlx::query!(
-            "UPDATE teams SET name = $1, enabled = $2 WHERE id = $3",
+            "UPDATE teams SET name = $1, enabled = $2, updated_at = NOW() WHERE id = $3",
             team.name,
             team.enabled,
             team.id
@@ -130,13 +131,13 @@ impl TeamRepository for PgTeamRepository {
         .execute(&self.pool)
         .await?;
 
+        // Atualizar todos os players do time
         for player in &team.players {
             sqlx::query!(
                 "INSERT INTO team_players (team_id, player_id, created_at, updated_at, enabled)
-             SELECT $1, $2, NOW(), NOW(), $3
-             WHERE NOT EXISTS (
-             SELECT 1 FROM team_players WHERE team_id = $1 AND player_id = $2
-             )",
+                 VALUES ($1, $2, NOW(), NOW(), $3)
+                 ON CONFLICT (team_id, player_id)
+                 DO UPDATE SET enabled = $3, updated_at = NOW()",
                 team.id,
                 player.id,
                 player.enabled
@@ -147,4 +148,5 @@ impl TeamRepository for PgTeamRepository {
 
         Ok(())
     }
+
 }

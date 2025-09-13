@@ -4,13 +4,14 @@ use axum::{
     Router,
     extract::{Json, State},
     http::StatusCode,
-    routing::post,
+    routing::{post, patch},
 };
 
 use crate::{
     application::use_cases::{
         add_players_into_team_use_case::AddPlayersIntoTeamUseCase,
         create_team_into_community_use_case::CreateTeamIntoCommunityUseCase,
+        delete_players_of_team_use_case::DeletePlayersOfTeamUseCase,
     },
     infra::db::{
         community_repository::PgCommunityRepository, player_repository::PgPlayerRepository,
@@ -19,6 +20,7 @@ use crate::{
     presentation::dtos::{
         add_players_into_team_dto::AddPlayersIntoTeamDto,
         create_team_into_community_dto::CreateTeamIntoCommunityDto,
+        delete_players_of_team_dto::DeletePlayersOfTeamDto,
     },
     shared::{api_error::ApiErrorResponse, state::AppState, validate_dto::validate_dto},
 };
@@ -27,6 +29,7 @@ pub fn team_routes() -> Router<AppState> {
     Router::new()
         .route("/", post(create_team_into_community))
         .route("/add-players", post(add_players_into_team))
+        .route("/delete-players", patch(delete_players_of_team))
 }
 
 async fn create_team_into_community(
@@ -58,6 +61,25 @@ async fn add_players_into_team(
     let player_repository = PgPlayerRepository::new(state.db.clone());
     let use_case =
         AddPlayersIntoTeamUseCase::new(Arc::new(player_repository), Arc::new(team_repository));
+
+    use_case
+        .execute(dto)
+        .await
+        .map_err(|(status, error)| (status, Json(error)))
+}
+
+async fn delete_players_of_team(
+    State(state): State<AppState>,
+    Json(dto): Json<DeletePlayersOfTeamDto>,
+) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
+    dto.validate()?;
+
+    let team_repository = PgTeamRepository::new(state.db.clone());
+    let player_repository = PgPlayerRepository::new(state.db.clone());
+    let use_case = DeletePlayersOfTeamUseCase::new(
+        Arc::new(player_repository),
+        Arc::new(team_repository),
+    );
 
     use_case
         .execute(dto)

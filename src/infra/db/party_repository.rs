@@ -95,14 +95,13 @@ impl PgPartyRepository {
             if !ids.is_empty() {
                 conditions.push(format!("team_winner_id = ANY(${})", idx));
                 params.push(serde_json::to_value(ids).unwrap().into());
-                idx += 1;
             }
         }
 
         let where_clause = if conditions.is_empty() {
             "".to_string()
         } else {
-            format!("WHERE {}", conditions.join(" AND "))
+            format!("AND {}", conditions.join(" AND "))
         };
 
         (format!("{base_query} {where_clause}"), params)
@@ -149,6 +148,7 @@ impl PartyRepository for PgPartyRepository {
         let base_query = r#"
             SELECT id, community_id, game_name, team_winner_id, finished_at, created_at, updated_at, enabled 
             FROM parties
+            WHERE enabled = true
         "#;
 
         let (query, params) = Self::build_dynamic_query(
@@ -198,7 +198,7 @@ impl PartyRepository for PgPartyRepository {
                 SELECT t.id, t.community_id, t.enabled, t.name, t.created_at, t.updated_at 
                 FROM teams t 
                 INNER JOIN party_teams pt ON pt.team_id = t.id 
-                WHERE pt.party_id = $1
+                WHERE pt.party_id = $1 AND t.enabled = true
                 "#,
                 id
             )
@@ -240,7 +240,7 @@ impl PartyRepository for PgPartyRepository {
             r#"
             SELECT id, community_id, game_name, team_winner_id, finished_at, created_at, updated_at, enabled
             FROM parties
-            WHERE id = $1
+            WHERE id = $1 AND enabled = true
             "#,
             id
         )
@@ -253,7 +253,7 @@ impl PartyRepository for PgPartyRepository {
                 SELECT t.id, t.community_id, t.enabled, t.name, t.created_at, t.updated_at 
                 FROM teams t 
                 INNER JOIN party_teams pt ON pt.team_id = t.id 
-                WHERE pt.party_id = $1
+                WHERE pt.party_id = $1 AND t.enabled = true
                 "#,
                 row.id
             )
