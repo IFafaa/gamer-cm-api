@@ -1,4 +1,3 @@
-use axum::http;
 use tower_http::cors::{Any, CorsLayer};
 
 pub fn cors_config() -> Result<CorsLayer, Box<dyn std::error::Error>> {
