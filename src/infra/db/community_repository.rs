@@ -109,16 +109,17 @@ impl CommunityRepository for PgCommunityRepository {
     }
 
     async fn insert(&self, community: &Community) -> anyhow::Result<()> {
-        sqlx::query!("INSERT INTO communities (name) VALUES ($1)", community.name)
+        sqlx::query!("INSERT INTO communities (name, user_id) VALUES ($1, $2)", community.name, community.user_id)
             .execute(&self.pool)
             .await?;
         Ok(())
     }
 
-    async fn get_all(&self) -> anyhow::Result<Vec<Community>> {
+    async fn get_all_by_user(&self, user_id: i32) -> anyhow::Result<Vec<Community>> {
         let rows = sqlx::query!(
-            "SELECT id, name, created_at, updated_at, enabled 
-             FROM communities WHERE enabled = true"
+            "SELECT id, name, user_id, created_at, updated_at, enabled 
+             FROM communities WHERE enabled = true AND user_id = $1",
+            user_id
         )
         .fetch_all(&self.pool)
         .await?;
@@ -132,6 +133,7 @@ impl CommunityRepository for PgCommunityRepository {
             communities.push(Community {
                 id: row.id,
                 name: row.name,
+                user_id: row.user_id.unwrap_or(0),
                 players,
                 teams,
                 created_at: row.created_at,
@@ -143,11 +145,11 @@ impl CommunityRepository for PgCommunityRepository {
         Ok(communities)
     }
 
-    async fn get_by_id(&self, id: i32) -> anyhow::Result<Option<Community>> {
+    async fn get_by_id_and_user(&self, id: i32, user_id: i32) -> anyhow::Result<Option<Community>> {
         let row = sqlx::query!(
-            "SELECT id, name, created_at, updated_at, enabled 
-             FROM communities WHERE id = $1",
-            id
+            "SELECT id, name, user_id, created_at, updated_at, enabled 
+             FROM communities WHERE id = $1 AND user_id = $2 AND enabled = true",
+            id, user_id
         )
         .fetch_optional(&self.pool)
         .await?;
@@ -159,6 +161,7 @@ impl CommunityRepository for PgCommunityRepository {
             return Ok(Some(Community {
                 id: row.id,
                 name: row.name,
+                user_id: row.user_id.unwrap_or(0),
                 players,
                 teams,
                 created_at: row.created_at,
@@ -170,12 +173,12 @@ impl CommunityRepository for PgCommunityRepository {
         Ok(None)
     }
 
-    async fn exists(&self, name: String) -> anyhow::Result<bool> {
+    async fn exists(&self, name: String, user_id: i32) -> anyhow::Result<bool> {
         let result = sqlx::query!(
             "SELECT EXISTS(
-                SELECT 1 FROM communities WHERE name = $1 AND enabled = true
+                SELECT 1 FROM communities WHERE name = $1 AND user_id = $2 AND enabled = true
             ) AS exists",
-            name
+            name, user_id
         )
         .fetch_one(&self.pool)
         .await?;

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Router,
-    extract::{Json, State},
+    extract::{Json, State, Extension},
     http::StatusCode,
     routing::{post, patch},
 };
@@ -17,10 +17,13 @@ use crate::{
         community_repository::PgCommunityRepository, player_repository::PgPlayerRepository,
         team_repository::PgTeamRepository,
     },
-    presentation::dtos::{
-        add_players_into_team_dto::AddPlayersIntoTeamDto,
-        create_team_into_community_dto::CreateTeamIntoCommunityDto,
-        delete_players_of_team_dto::DeletePlayersOfTeamDto,
+    presentation::{
+        dtos::{
+            add_players_into_team_dto::AddPlayersIntoTeamDto,
+            create_team_into_community_dto::CreateTeamIntoCommunityDto,
+            delete_players_of_team_dto::DeletePlayersOfTeamDto,
+        },
+        middleware::auth_middleware::AuthenticatedUser,
     },
     shared::{api_error::ApiErrorResponse, state::AppState, validate_dto::validate_dto},
 };
@@ -34,6 +37,7 @@ pub fn team_routes() -> Router<AppState> {
 
 async fn create_team_into_community(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<CreateTeamIntoCommunityDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     validate_dto(&dto)?;
@@ -46,7 +50,7 @@ async fn create_team_into_community(
     );
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }

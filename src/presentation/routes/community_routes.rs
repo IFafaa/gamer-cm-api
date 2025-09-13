@@ -11,7 +11,10 @@ use crate::{
         },
     },
     infra::db::community_repository::PgCommunityRepository,
-    presentation::dtos::create_community_dto::CreateCommunityDto,
+    presentation::{
+        dtos::create_community_dto::CreateCommunityDto,
+        middleware::auth_middleware::AuthenticatedUser,
+    },
     shared::{
         api_error::ApiErrorResponse, api_response::ApiResponse, state::AppState,
         validate_dto::validate_dto,
@@ -19,7 +22,7 @@ use crate::{
 };
 use axum::{
     Router,
-    extract::{Json, Path, State},
+    extract::{Json, Path, State, Extension},
     http::StatusCode,
     routing::{delete, get, post},
 };
@@ -34,6 +37,7 @@ pub fn community_routes() -> Router<AppState> {
 
 async fn create_community(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<CreateCommunityDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     validate_dto(&dto)?;
@@ -42,19 +46,20 @@ async fn create_community(
     let use_case = CreateCommunityUseCase::new(Arc::new(community_repository));
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }
 
 async fn get_communities(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
 ) -> Result<Json<ApiResponse<Vec<IResultGetCommunity>>>, (StatusCode, Json<ApiErrorResponse>)> {
     let community_repository = PgCommunityRepository::new(state.db.clone());
     let use_case = GetCommunitiesUseCase::new(Arc::new(community_repository));
 
     use_case
-        .execute()
+        .execute(user.id)
         .await
         .map(|response| Json(response))
         .map_err(|(status, error)| (status, Json(error)))
@@ -62,13 +67,14 @@ async fn get_communities(
 
 async fn get_community_by_id(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Path(id): Path<i32>,
 ) -> Result<Json<ApiResponse<IResultGetCommunity>>, (StatusCode, Json<ApiErrorResponse>)> {
     let community_repository = PgCommunityRepository::new(state.db.clone());
     let use_case = GetCommunityByIdUseCase::new(Arc::new(community_repository));
 
     use_case
-        .execute(id)
+        .execute(id, user.id)
         .await
         .map(|response| Json(response))
         .map_err(|(status, error)| (status, Json(error)))
@@ -76,13 +82,14 @@ async fn get_community_by_id(
 
 async fn delete_community(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Path(id): Path<i32>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     let community_repository = PgCommunityRepository::new(state.db.clone());
     let use_case = DeleteCommunityUseCase::new(Arc::new(community_repository));
 
     use_case
-        .execute(id)
+        .execute(id, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }

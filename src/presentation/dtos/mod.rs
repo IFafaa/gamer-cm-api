@@ -5,3 +5,6 @@ pub mod create_player_into_community_dto;
 pub mod create_team_into_community_dto;
 pub mod end_party_dto;
 pub mod delete_players_of_team_dto;
+pub mod register_dto;
+pub mod login_dto;
+pub mod auth_response_dto;

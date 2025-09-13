@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Path, State},
+    extract::{Path, State, Extension},
     http::StatusCode,
     routing::{delete, get, patch, post},
 };
@@ -20,7 +20,10 @@ use crate::{
         community_repository::PgCommunityRepository, party_repository::PgPartyRepository,
         team_repository::PgTeamRepository,
     },
-    presentation::dtos::{create_party_dto::CreatePartyDto, end_party_dto::EndPartyDto},
+    presentation::{
+        dtos::{create_party_dto::CreatePartyDto, end_party_dto::EndPartyDto},
+        middleware::auth_middleware::AuthenticatedUser,
+    },
     shared::{api_error::ApiErrorResponse, api_response::ApiResponse, state::AppState},
 };
 
@@ -35,6 +38,7 @@ pub fn party_routes() -> Router<AppState> {
 
 async fn create_party(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<CreatePartyDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     dto.validate()?;
@@ -49,7 +53,7 @@ async fn create_party(
     );
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }

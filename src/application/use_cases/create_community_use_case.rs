@@ -21,6 +21,7 @@ impl<R: CommunityRepository> CreateCommunityUseCase<R> {
     pub async fn execute(
         &self,
         dto: CreateCommunityDto,
+        user_id: i32,
     ) -> Result<(), (StatusCode, ApiErrorResponse)> {
         if dto.name.is_empty() {
             return Err((
@@ -31,7 +32,7 @@ impl<R: CommunityRepository> CreateCommunityUseCase<R> {
 
         let already_exists = self
             .community_repository
-            .exists(dto.name.clone())
+            .exists(dto.name.clone(), user_id)
             .await
             .map_err(|_| {
                 (
@@ -46,7 +47,7 @@ impl<R: CommunityRepository> CreateCommunityUseCase<R> {
             ));
         }
 
-        let community = Community::new(dto.name);
+        let community = Community::new(dto.name, user_id);
         self.community_repository
             .insert(&community)
             .await

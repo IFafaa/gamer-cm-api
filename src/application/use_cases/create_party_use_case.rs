@@ -32,10 +32,10 @@ impl<TR: TeamRepository, CR: CommunityRepository, PR: PartyRepository>
         }
     }
 
-    pub async fn execute(&self, dto: CreatePartyDto) -> Result<(), (StatusCode, ApiErrorResponse)> {
+    pub async fn execute(&self, dto: CreatePartyDto, user_id: i32) -> Result<(), (StatusCode, ApiErrorResponse)> {
         let community = self
             .community_repository
-            .get_by_id(dto.community_id)
+            .get_by_id_and_user(dto.community_id, user_id)
             .await
             .map_err(|_| {
                 (

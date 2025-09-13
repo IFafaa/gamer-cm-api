@@ -26,6 +26,7 @@ impl<TR: TeamRepository, CR: CommunityRepository> CreateTeamIntoCommunityUseCase
     pub async fn execute(
         &self,
         dto: CreateTeamIntoCommunityDto,
+        user_id: i32,
     ) -> Result<(), (StatusCode, ApiErrorResponse)> {
         let already_exists = self
             .team_repository
@@ -46,7 +47,7 @@ impl<TR: TeamRepository, CR: CommunityRepository> CreateTeamIntoCommunityUseCase
 
         let community = self
             .community_repository
-            .get_by_id(dto.community_id)
+            .get_by_id_and_user(dto.community_id, user_id)
             .await
             .map_err(|_| {
                 (

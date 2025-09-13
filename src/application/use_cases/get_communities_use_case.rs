@@ -20,8 +20,9 @@ impl<R: CommunityRepository> GetCommunitiesUseCase<R> {
 
     pub async fn execute(
         &self,
+        user_id: i32,
     ) -> Result<ApiResponse<Vec<IResultGetCommunity>>, (StatusCode, ApiErrorResponse)> {
-        let communities = self.community_repository.get_all().await.map_err(|_| {
+        let communities = self.community_repository.get_all_by_user(user_id).await.map_err(|_| {
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 ApiErrorResponse::new("Internal Server Error".to_string()),

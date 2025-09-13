@@ -8,12 +8,15 @@ use crate::{
     infra::db::{
         community_repository::PgCommunityRepository, player_repository::PgPlayerRepository,
     },
-    presentation::dtos::create_player_into_community_dto::CreatePlayerIntoCommunityDto,
+    presentation::{
+        dtos::create_player_into_community_dto::CreatePlayerIntoCommunityDto,
+        middleware::auth_middleware::AuthenticatedUser,
+    },
     shared::{api_error::ApiErrorResponse, state::AppState, validate_dto::validate_dto},
 };
 use axum::{
     Router,
-    extract::{Json, Path, State},
+    extract::{Json, Path, State, Extension},
     http::StatusCode,
     routing::{delete, post},
 };
@@ -26,6 +29,7 @@ pub fn player_routes() -> Router<AppState> {
 
 async fn create_player_into_community(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<CreatePlayerIntoCommunityDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     validate_dto(&dto)?;
@@ -38,7 +42,7 @@ async fn create_player_into_community(
     );
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }

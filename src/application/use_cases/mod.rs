@@ -12,3 +12,5 @@ pub mod get_community_by_id_use_case;
 pub mod get_parties_use_case;
 pub mod get_party_by_id_use_case;
 pub mod delete_players_of_team_use_case;
+pub mod register_user_use_case;
+pub mod login_user_use_case;
