@@ -28,13 +28,6 @@ impl<R: CommunityRepository> GetCommunitiesUseCase<R> {
             )
         })?;
 
-        if communities.is_empty() {
-            return Err((
-                StatusCode::NOT_FOUND,
-                ApiErrorResponse::new("No communities found".to_string()),
-            ));
-        }
-
         let result: Vec<IResultGetCommunity> = communities
             .into_iter()
             .map(|community| IResultGetCommunity::new(community))
