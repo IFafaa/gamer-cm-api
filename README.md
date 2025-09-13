@@ -55,25 +55,17 @@ git clone <repository-url>
 cd gamer-cm
 ```
 
-### 2. Install System Dependencies
-
-```bash
-# Install necessary development libraries
-sudo apt update
-sudo apt install -y libssl-dev pkg-config build-essential
-```
-
-### 3. Configure the Database
+### 2. Configure the Database
 
 ```bash
 # Start PostgreSQL via Docker
-sudo docker-compose up -d
+docker-compose up -d
 
 # Check if container is running
-sudo docker ps
+docker ps
 ```
 
-### 4. Configure Environment Variables
+### 3. Configure Environment Variables
 
 The `.env` file is already configured with the following variables:
 
@@ -89,7 +81,7 @@ HOST=0.0.0.0
 ENVIRONMENT=development
 ```
 
-### 5. Install and Run Migrations
+### 4. Install and Run Migrations
 
 ```bash
 # Install SQLx CLI
@@ -99,7 +91,7 @@ cargo install sqlx-cli --no-default-features --features postgres
 sqlx migrate run
 ```
 
-### 6. Build and Run the Project
+### 5. Build and Run the Project
 
 ```bash
 # Build the project
@@ -115,7 +107,7 @@ cargo run
 
 ```bash
 # Terminal 1: Start the database
-sudo docker-compose up -d
+docker-compose up -d
 
 # Terminal 2: Run the server
 cargo run
