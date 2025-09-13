@@ -10,6 +10,7 @@ pub struct IResultGetParty {
     team_winner_id: Option<i32>,
     created_at: String,
     updated_at: String,
+    finished_at: Option<String>,
     teams: Vec<IResultPartyTeam>,
 }
 
@@ -39,6 +40,7 @@ impl IResultGetParty {
             community_id: party.community_id,
             created_at: party.created_at.to_string(),
             updated_at: party.updated_at.to_string(),
+            finished_at: party.finished_at.map(|date| date.to_string()),
             teams: party
                 .teams
                 .into_iter()
