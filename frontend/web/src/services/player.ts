@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '@/lib/api';
 
 interface CreatePlayerParams {
   nickname: string;
@@ -16,10 +17,6 @@ interface ApiResponse<T> {
   data: T;
   timestamp: string;
 }
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-});
 
 export async function createPlayer({ nickname, community_id }: CreatePlayerParams): Promise<ApiResponse<Player>> {
   try {

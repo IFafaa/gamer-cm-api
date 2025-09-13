@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '@/lib/api';
 
 interface CreatePartyParams {
   game_name: string;
@@ -44,9 +45,6 @@ interface ApiResponse<T> {
   timestamp: string;
 }
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-});
 
 export async function createParty({ game_name, teams_ids, community_id }: CreatePartyParams): Promise<ApiResponse<Party>> {
   try {
@@ -81,15 +79,6 @@ export async function endParty({ party_id, team_winner_id }: EndPartyParams): Pr
 export async function getParties(): Promise<ApiResponse<Party[]>> {
   try {
     const { data } = await api.get('/parties');
-    
-    // Se o backend retorna uma mensagem de "no parties found", 
-    // tratamos como uma lista vazia (não é um erro)
-    if (data.message && data.message.includes("No parties found")) {
-      return {
-        data: [],
-        timestamp: data.timestamp
-      };
-    }
     
     return data;
   } catch (error) {

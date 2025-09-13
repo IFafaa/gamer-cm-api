@@ -30,9 +30,10 @@ import { Player, Team, Community } from "@/types/community";
 
 interface CommunityContentProps {
   community: Community;
+  onCommunityUpdate?: () => void;
 }
 
-export function CommunityContent({ community }: CommunityContentProps) {
+export function CommunityContent({ community, onCommunityUpdate }: CommunityContentProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false);
   const [isCreatePartyDialogOpen, setIsCreatePartyDialogOpen] = useState(false);
@@ -50,7 +51,9 @@ export function CommunityContent({ community }: CommunityContentProps) {
   const router = useRouter();
 
   const refreshCommunity = () => {
-    router.refresh();
+    if (onCommunityUpdate) {
+      onCommunityUpdate();
+    }
     loadParties();
   };
 
@@ -58,7 +61,6 @@ export function CommunityContent({ community }: CommunityContentProps) {
     setPartiesLoading(true);
     try {
       const response = await getParties();
-      // Filtrar partidas apenas desta comunidade
       const communityParties = response.data.filter(party => party.community_id === community.id);
       setParties(communityParties);
     } catch (error) {

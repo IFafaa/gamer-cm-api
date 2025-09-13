@@ -84,31 +84,31 @@ export function CreatePartyDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Party</DialogTitle>
           <DialogDescription>
-            Create a new gaming party with multiple teams.
+            Create a new party with at least 2 teams
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="game-name">Game Name</Label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="gameName">Game Name</Label>
             <Input
-              id="game-name"
+              id="gameName"
               value={gameName}
               onChange={(e) => setGameName(e.target.value)}
-              placeholder="Enter game name (e.g., Counter-Strike, Valorant)"
-              disabled={isLoading}
+              placeholder="Enter game name"
+              required
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label>Select Teams ({selectedTeams.length} selected)</Label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="max-h-40 overflow-y-auto space-y-2">
               {availableTeams.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-sm text-muted-foreground">
                   No teams available. Create teams first.
                 </p>
               ) : (
@@ -118,13 +118,12 @@ export function CreatePartyDialog({
                       id={`team-${team.id}`}
                       checked={selectedTeams.includes(team.id)}
                       onCheckedChange={() => handleTeamToggle(team.id)}
-                      disabled={isLoading}
                     />
                     <Label
                       htmlFor={`team-${team.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-normal cursor-pointer"
                     >
-                      {team.name} ({team.players.length} players)
+                      {team.name}
                     </Label>
                   </div>
                 ))
@@ -134,12 +133,18 @@ export function CreatePartyDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isLoading || !gameName.trim() || selectedTeams.length < 2}
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isLoading || selectedTeams.length < 2}
           >
             {isLoading ? "Creating..." : "Create Party"}
           </Button>

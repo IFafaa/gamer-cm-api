@@ -1,9 +1,6 @@
 import axios from "axios";
 import { CommunitiesResponse, CreateCommunityRequest } from "@/types/community";
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-});
+import api from "@/lib/api";
 
 export async function getCommunities(): Promise<CommunitiesResponse> {
   try {

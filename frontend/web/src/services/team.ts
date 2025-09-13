@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '@/lib/api';
 
 interface CreateTeamParams {
   name: string;
@@ -23,9 +24,6 @@ interface ApiResponse<T> {
   timestamp: string;
 }
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-});
 
 export async function createTeam({ name, community_id }: CreateTeamParams): Promise<ApiResponse<Team>> {
   try {
