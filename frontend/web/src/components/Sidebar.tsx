@@ -56,26 +56,39 @@ export function Sidebar() {
     <>
       <div className="w-20 h-screen bg-sidebar flex flex-col items-center py-4">
         <div className="flex-1 space-y-4">
-          {communities.map((community) => (
-            <button
-              key={community.id}
-              onClick={() => router.push(`/community/${community.id}`)}
-              className="w-12 h-12 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 
-                       text-sidebar-accent-foreground font-medium flex items-center justify-center
-                       transition-colors duration-200 cursor-pointer"
-              title={community.name}
-            >
-              {community.name.slice(0, 2).toUpperCase()}
-            </button>
-          ))}
+          {communities.length > 0 ? (
+            communities.map((community) => (
+              <button
+                key={community.id}
+                onClick={() => router.push(`/community/${community.id}`)}
+                className="w-12 h-12 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 
+                         text-sidebar-accent-foreground font-medium flex items-center justify-center
+                         transition-colors duration-200 cursor-pointer"
+                title={community.name}
+              >
+                {community.name.slice(0, 2).toUpperCase()}
+              </button>
+            ))
+          ) : (
+            <div className="flex flex-col items-center space-y-3 px-2">
+              <div className="w-12 h-12 rounded-full bg-sidebar-accent/50 flex items-center justify-center">
+                <span className="text-sidebar-accent-foreground/70 text-xs text-center leading-tight">
+                  No communities yet
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="w-12 h-12 rounded-full bg-sidebar-accent hover:bg-sidebar-accent/80 
-                   text-sidebar-accent-foreground flex items-center justify-center
-                   transition-colors duration-200 cursor-pointer"
-          title="Create Community"
+          className={`w-12 h-12 rounded-full flex items-center justify-center
+                     transition-all duration-200 cursor-pointer ${
+            communities.length === 0
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg animate-pulse'
+              : 'bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-accent-foreground'
+          }`}
+          title={communities.length === 0 ? "Create your first community!" : "Create Community"}
         >
           <Plus className="w-6 h-6" />
         </button>

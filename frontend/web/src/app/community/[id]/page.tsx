@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { CommunityContent } from '@/components/CommunityContent';
+import axios from 'axios';
 
 interface Player {
   id: number;
@@ -30,27 +31,30 @@ interface CommunityResponse {
   timestamp: string;
 }
 
-async function getCommunity(id: string): Promise<CommunityResponse> {
-  const res = await fetch(`http://localhost:3333/communities/${id}`, {
-    cache: 'no-store'
-  });
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
 
-  if (!res.ok) {
+async function getCommunity(id: string): Promise<CommunityResponse> {
+  const res = await api.get(`/communities/${id}`);
+
+  if (res.status !== 200) {
     throw new Error('Failed to fetch community');
   }
 
-  return res.json();
+  return res.data;
 }
 
 export default async function CommunityPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   let community: Community;
   
   try {
-    const response = await getCommunity(params.id);
+    const { id } = await params;
+    const response = await getCommunity(id);
     community = response.data;
   } catch {
     notFound();
