@@ -131,7 +131,6 @@ impl TeamRepository for PgTeamRepository {
         .execute(&self.pool)
         .await?;
 
-        // Atualizar todos os players do time
         for player in &team.players {
             sqlx::query!(
                 "INSERT INTO team_players (team_id, player_id, created_at, updated_at, enabled)
