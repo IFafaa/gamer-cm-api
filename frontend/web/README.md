@@ -1,36 +1,178 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gamers CM - Frontend
 
-## Getting Started
+Uma aplicação web moderna construída com Next.js para gerenciamento de comunidades de jogadores. Interface intuitiva e responsiva para administrar comunidades, jogadores, times e eventos de gaming.
 
-First, run the development server:
+## 🚀 Tecnologias Utilizadas
+
+- **Next.js 15** - Framework React para aplicações web modernas
+- **React 19** - Biblioteca para interfaces de usuário
+- **TypeScript** - Superset do JavaScript com tipagem estática
+- **Tailwind CSS** - Framework CSS utilitário para design responsivo
+- **Radix UI** - Componentes acessíveis e customizáveis
+- **Axios** - Cliente HTTP para comunicação com a API
+- **Lucide React** - Ícones modernos e consistentes
+
+## ✨ Funcionalidades
+
+- **Autenticação de Usuários** - Login e registro seguros
+- **Gerenciamento de Comunidades** - Criação e administração de comunidades de gaming
+- **Sistema de Jogadores** - Perfis de jogadores e gerenciamento de membros
+- **Sistema de Times** - Formação e gerenciamento de times dentro das comunidades
+- **Gerenciamento de Eventos** - Criação e administração de partidas e torneios
+- **Interface Responsiva** - Design adaptável para desktop e mobile
+- **Tema Escuro/Claro** - Suporte a modo escuro e claro
+- **Componentes Reutilizáveis** - Biblioteca de componentes UI consistente
+
+## 📋 Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado:
+
+- **Node.js** (versão 18 ou superior)
+- **npm** ou **yarn** ou **pnpm**
+- **Git**
+
+## 🛠️ Configuração e Instalação
+
+### 1. Clone o Repositório
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd gamer-cm/gamer-cm-front
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instale as Dependências
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Usando npm
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Ou usando yarn
+yarn install
 
-## Learn More
+# Ou usando pnpm
+pnpm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Configure as Variáveis de Ambiente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Crie um arquivo `.env.local` na raiz do projeto:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+# URL da API Backend
+NEXT_PUBLIC_API_URL=http://localhost:8080
 
-## Deploy on Vercel
+# Ambiente
+NODE_ENV=development
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. Execute o Projeto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Modo desenvolvimento
+npm run dev
+
+# Ou usando yarn
+yarn dev
+
+# Ou usando pnpm
+pnpm dev
+```
+
+## 🚀 Executando o Projeto
+
+### Desenvolvimento
+
+```bash
+# Terminal 1: Execute o backend (gamer-cm-api)
+cd ../gamer-cm-api
+cargo run
+
+# Terminal 2: Execute o frontend
+cd gamer-cm-front
+npm run dev
+```
+
+A aplicação estará disponível em: `http://localhost:3000`
+
+### Logs de Sucesso
+
+Quando tudo estiver funcionando corretamente, você verá:
+
+```
+✓ Ready in 2.3s
+✓ Local:        http://localhost:3000
+✓ Network:      http://192.168.1.100:3000
+```
+
+## 📁 Estrutura do Projeto
+
+```
+gamer-cm-front/
+├── src/
+│   ├── app/                    # Páginas e layouts (App Router)
+│   │   ├── (authenticated)/    # Rotas protegidas
+│   │   ├── login/              # Página de login
+│   │   └── register/           # Página de registro
+│   ├── components/             # Componentes reutilizáveis
+│   │   ├── ui/                 # Componentes base (Radix UI)
+│   │   └── *.tsx               # Componentes específicos
+│   ├── contexts/               # Contextos React (Auth, etc.)
+│   ├── lib/                    # Utilitários e configurações
+│   ├── services/               # Serviços de API
+│   └── types/                  # Definições TypeScript
+├── public/                     # Arquivos estáticos
+├── components.json             # Configuração do shadcn/ui
+├── tailwind.config.ts          # Configuração do Tailwind
+└── next.config.ts              # Configuração do Next.js
+```
+
+## 🎨 Design System
+
+O projeto utiliza um design system consistente baseado em:
+
+- **Radix UI** - Componentes primitivos acessíveis
+- **Tailwind CSS** - Utilitários CSS para estilização
+- **Lucide React** - Ícones consistentes
+- **CSS Variables** - Sistema de cores customizável
+
+### Cores Principais
+
+```css
+--primary: 222.2 84% 4.9%
+--secondary: 210 40% 98%
+--accent: 210 40% 96%
+--muted: 210 40% 96%
+```
+
+## 🔧 Scripts Disponíveis
+
+```bash
+# Desenvolvimento com Turbopack (mais rápido)
+npm run dev
+
+# Build para produção
+npm run build
+
+# Executar build de produção
+npm run start
+
+# Linting do código
+npm run lint
+```
+
+## 🧪 Testando a Aplicação
+
+```bash
+# Verificar se o servidor está rodando
+curl http://localhost:3000
+
+# Ou abra no navegador
+open http://localhost:3000
+```
+
+## 📚 Recursos Adicionais
+
+- [Documentação do Next.js](https://nextjs.org/docs) - Aprenda sobre recursos do Next.js
+- [Documentação do React](https://react.dev) - Guia oficial do React
+- [Tailwind CSS](https://tailwindcss.com/docs) - Documentação do Tailwind
+- [Radix UI](https://www.radix-ui.com) - Componentes acessíveis
