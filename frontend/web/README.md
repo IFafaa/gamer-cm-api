@@ -1,102 +1,102 @@
 # Gamers CM - Frontend
 
-Uma aplicação web moderna construída com Next.js para gerenciamento de comunidades de jogadores. Interface intuitiva e responsiva para administrar comunidades, jogadores, times e eventos de gaming.
+A modern web application built with Next.js for gaming community management. Intuitive and responsive interface for managing communities, players, teams, and gaming events.
 
-## 🚀 Tecnologias Utilizadas
+## 🚀 Technologies Used
 
-- **Next.js 15** - Framework React para aplicações web modernas
-- **React 19** - Biblioteca para interfaces de usuário
-- **TypeScript** - Superset do JavaScript com tipagem estática
-- **Tailwind CSS** - Framework CSS utilitário para design responsivo
-- **Radix UI** - Componentes acessíveis e customizáveis
-- **Axios** - Cliente HTTP para comunicação com a API
-- **Lucide React** - Ícones modernos e consistentes
+- **Next.js 15** - React framework for modern web applications
+- **React 19** - Library for user interfaces
+- **TypeScript** - JavaScript superset with static typing
+- **Tailwind CSS** - Utility-first CSS framework for responsive design
+- **Radix UI** - Accessible and customizable components
+- **Axios** - HTTP client for API communication
+- **Lucide React** - Modern and consistent icons
 
-## ✨ Funcionalidades
+## ✨ Features
 
-- **Autenticação de Usuários** - Login e registro seguros
-- **Gerenciamento de Comunidades** - Criação e administração de comunidades de gaming
-- **Sistema de Jogadores** - Perfis de jogadores e gerenciamento de membros
-- **Sistema de Times** - Formação e gerenciamento de times dentro das comunidades
-- **Gerenciamento de Eventos** - Criação e administração de partidas e torneios
-- **Interface Responsiva** - Design adaptável para desktop e mobile
-- **Tema Escuro/Claro** - Suporte a modo escuro e claro
-- **Componentes Reutilizáveis** - Biblioteca de componentes UI consistente
+- **User Authentication** - Secure login and registration
+- **Community Management** - Create and administer gaming communities
+- **Player System** - Player profiles and member management
+- **Team System** - Team formation and management within communities
+- **Event Management** - Create and manage matches and tournaments
+- **Responsive Interface** - Design adaptable for desktop and mobile
+- **Dark/Light Theme** - Support for dark and light modes
+- **Reusable Components** - Consistent UI component library
 
-## 📋 Pré-requisitos
+## 📋 Prerequisites
 
-Antes de começar, certifique-se de ter instalado:
+Before you begin, make sure you have installed:
 
-- **Node.js** (versão 18 ou superior)
-- **npm** ou **yarn** ou **pnpm**
+- **Node.js** (version 18 or higher)
+- **npm** or **yarn** or **pnpm**
 - **Git**
 
-## 🛠️ Configuração e Instalação
+## 🛠️ Setup and Installation
 
-### 1. Clone o Repositório
+### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd gamer-cm/gamer-cm-front
 ```
 
-### 2. Instale as Dependências
+### 2. Install Dependencies
 
 ```bash
-# Usando npm
+# Using npm
 npm install
 
-# Ou usando yarn
+# Or using yarn
 yarn install
 
-# Ou usando pnpm
+# Or using pnpm
 pnpm install
 ```
 
-### 3. Configure as Variáveis de Ambiente
+### 3. Configure Environment Variables
 
-Crie um arquivo `.env.local` na raiz do projeto:
+Create a `.env.local` file in the project root:
 
 ```env
-# URL da API Backend
+# Backend API URL
 NEXT_PUBLIC_API_URL=http://localhost:8080
 
-# Ambiente
+# Environment
 NODE_ENV=development
 ```
 
-### 4. Execute o Projeto
+### 4. Run the Project
 
 ```bash
-# Modo desenvolvimento
+# Development mode
 npm run dev
 
-# Ou usando yarn
+# Or using yarn
 yarn dev
 
-# Ou usando pnpm
+# Or using pnpm
 pnpm dev
 ```
 
-## 🚀 Executando o Projeto
+## 🚀 Running the Project
 
-### Desenvolvimento
+### Development
 
 ```bash
-# Terminal 1: Execute o backend (gamer-cm-api)
+# Terminal 1: Run the backend (gamer-cm-api)
 cd ../gamer-cm-api
 cargo run
 
-# Terminal 2: Execute o frontend
+# Terminal 2: Run the frontend
 cd gamer-cm-front
 npm run dev
 ```
 
-A aplicação estará disponível em: `http://localhost:3000`
+The application will be available at: `http://localhost:3000`
 
-### Logs de Sucesso
+### Success Logs
 
-Quando tudo estiver funcionando corretamente, você verá:
+When everything is working correctly, you will see:
 
 ```
 ✓ Ready in 2.3s
@@ -104,38 +104,38 @@ Quando tudo estiver funcionando corretamente, você verá:
 ✓ Network:      http://192.168.1.100:3000
 ```
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 gamer-cm-front/
 ├── src/
-│   ├── app/                    # Páginas e layouts (App Router)
-│   │   ├── (authenticated)/    # Rotas protegidas
-│   │   ├── login/              # Página de login
-│   │   └── register/           # Página de registro
-│   ├── components/             # Componentes reutilizáveis
-│   │   ├── ui/                 # Componentes base (Radix UI)
-│   │   └── *.tsx               # Componentes específicos
-│   ├── contexts/               # Contextos React (Auth, etc.)
-│   ├── lib/                    # Utilitários e configurações
-│   ├── services/               # Serviços de API
-│   └── types/                  # Definições TypeScript
-├── public/                     # Arquivos estáticos
-├── components.json             # Configuração do shadcn/ui
-├── tailwind.config.ts          # Configuração do Tailwind
-└── next.config.ts              # Configuração do Next.js
+│   ├── app/                    # Pages and layouts (App Router)
+│   │   ├── (authenticated)/    # Protected routes
+│   │   ├── login/              # Login page
+│   │   └── register/           # Registration page
+│   ├── components/             # Reusable components
+│   │   ├── ui/                 # Base components (Radix UI)
+│   │   └── *.tsx               # Specific components
+│   ├── contexts/               # React contexts (Auth, etc.)
+│   ├── lib/                    # Utilities and configurations
+│   ├── services/               # API services
+│   └── types/                  # TypeScript definitions
+├── public/                     # Static files
+├── components.json             # shadcn/ui configuration
+├── tailwind.config.ts          # Tailwind configuration
+└── next.config.ts              # Next.js configuration
 ```
 
 ## 🎨 Design System
 
-O projeto utiliza um design system consistente baseado em:
+The project uses a consistent design system based on:
 
-- **Radix UI** - Componentes primitivos acessíveis
-- **Tailwind CSS** - Utilitários CSS para estilização
-- **Lucide React** - Ícones consistentes
-- **CSS Variables** - Sistema de cores customizável
+- **Radix UI** - Accessible primitive components
+- **Tailwind CSS** - CSS utilities for styling
+- **Lucide React** - Consistent icons
+- **CSS Variables** - Customizable color system
 
-### Cores Principais
+### Main Colors
 
 ```css
 --primary: 222.2 84% 4.9%
@@ -144,35 +144,35 @@ O projeto utiliza um design system consistente baseado em:
 --muted: 210 40% 96%
 ```
 
-## 🔧 Scripts Disponíveis
+## 🔧 Available Scripts
 
 ```bash
-# Desenvolvimento com Turbopack (mais rápido)
+# Development with Turbopack (faster)
 npm run dev
 
-# Build para produção
+# Build for production
 npm run build
 
-# Executar build de produção
+# Run production build
 npm run start
 
-# Linting do código
+# Code linting
 npm run lint
 ```
 
-## 🧪 Testando a Aplicação
+## 🧪 Testing the Application
 
 ```bash
-# Verificar se o servidor está rodando
+# Check if the server is running
 curl http://localhost:3000
 
-# Ou abra no navegador
+# Or open in browser
 open http://localhost:3000
 ```
 
-## 📚 Recursos Adicionais
+## 📚 Additional Resources
 
-- [Documentação do Next.js](https://nextjs.org/docs) - Aprenda sobre recursos do Next.js
-- [Documentação do React](https://react.dev) - Guia oficial do React
-- [Tailwind CSS](https://tailwindcss.com/docs) - Documentação do Tailwind
-- [Radix UI](https://www.radix-ui.com) - Componentes acessíveis
+- [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features
+- [React Documentation](https://react.dev) - Official React guide
+- [Tailwind CSS](https://tailwindcss.com/docs) - Tailwind documentation
+- [Radix UI](https://www.radix-ui.com) - Accessible components
