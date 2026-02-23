@@ -26,9 +26,11 @@ COPY src ./src
 COPY migrations ./migrations
 COPY swagger.json ./swagger.json
 
-# DATABASE_URL para verificacao de queries em tempo de compilacao
-# Passar via --build-arg DATABASE_URL=postgres://...
-ARG DATABASE_URL
+# Copiar cache do sqlx para build offline (sem precisar de banco de dados)
+COPY .sqlx ./.sqlx
+
+# Habilitar modo offline do sqlx (usa cache pre-gerado)
+ENV SQLX_OFFLINE=true
 
 # Recompilar com codigo real
 RUN touch src/main.rs && cargo build --release
