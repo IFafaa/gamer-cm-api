@@ -14,7 +14,11 @@ impl<R: CommunityRepository> DeleteCommunityUseCase<R> {
         }
     }
 
-    pub async fn execute(&self, community_id: i32, user_id: i32) -> Result<(), (StatusCode, ApiErrorResponse)> {
+    pub async fn execute(
+        &self,
+        community_id: i32,
+        user_id: i32,
+    ) -> Result<(), (StatusCode, ApiErrorResponse)> {
         let mut community = self
             .community_repository
             .get_by_id_and_user(community_id, user_id)

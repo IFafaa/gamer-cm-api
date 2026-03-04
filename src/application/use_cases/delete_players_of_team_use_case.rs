@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
 use crate::{
-    domain::{
-        community::CommunityRepository,
-        player::PlayerRepository,
-        team::TeamRepository,
-    },
+    domain::{community::CommunityRepository, player::PlayerRepository, team::TeamRepository},
     presentation::dtos::delete_players_of_team_dto::DeletePlayersOfTeamDto,
     shared::api_error::ApiErrorResponse,
 };
 
-pub struct DeletePlayersOfTeamUseCase<PR: PlayerRepository, TR: TeamRepository, CR: CommunityRepository> {
+pub struct DeletePlayersOfTeamUseCase<
+    PR: PlayerRepository,
+    TR: TeamRepository,
+    CR: CommunityRepository,
+> {
     player_repository: Arc<PR>,
     team_repository: Arc<TR>,
     community_repository: Arc<CR>,

@@ -1,10 +1,10 @@
 use shared::state::AppState;
 
+pub mod application;
 pub mod domain;
 pub mod infra;
 pub mod presentation;
 pub mod shared;
-pub mod application;
 
 #[tokio::main]
 async fn main() {
@@ -27,7 +27,10 @@ async fn main() {
     let addr = listener.local_addr().expect("Failed to get local address");
     println!("🚀 Server started successfully!");
     println!("🌐 Listening on http://{}", addr);
-    println!("📚 API Documentation available at http://{}/api-docs/", addr);
+    println!(
+        "📚 API Documentation available at http://{}/api-docs/",
+        addr
+    );
     axum::serve(listener, app)
         .await
         .expect("Failed to start server");

@@ -20,7 +20,7 @@ use crate::{
 };
 use axum::{
     Router,
-    extract::{Json, Path, State, Extension},
+    extract::{Extension, Json, Path, State},
     http::StatusCode,
     routing::{delete, post, put},
 };
@@ -62,10 +62,8 @@ async fn update_player(
 
     let player_repository = PgPlayerRepository::new(state.db.clone());
     let community_repository = PgCommunityRepository::new(state.db.clone());
-    let use_case = UpdatePlayerUseCase::new(
-        Arc::new(player_repository),
-        Arc::new(community_repository),
-    );
+    let use_case =
+        UpdatePlayerUseCase::new(Arc::new(player_repository), Arc::new(community_repository));
 
     use_case
         .execute(id, user.id, dto)

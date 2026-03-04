@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use axum::{
     Router,
-    extract::{Json, Path, State, Extension},
+    extract::{Extension, Json, Path, State},
     http::StatusCode,
-    routing::{post, put, patch},
+    routing::{patch, post, put},
 };
 
 use crate::{
@@ -22,8 +22,7 @@ use crate::{
         dtos::{
             add_players_into_team_dto::AddPlayersIntoTeamDto,
             create_team_into_community_dto::CreateTeamIntoCommunityDto,
-            delete_players_of_team_dto::DeletePlayersOfTeamDto,
-            update_team_dto::UpdateTeamDto,
+            delete_players_of_team_dto::DeletePlayersOfTeamDto, update_team_dto::UpdateTeamDto,
         },
         middleware::auth_middleware::AuthenticatedUser,
     },
@@ -68,10 +67,8 @@ async fn update_team(
 
     let team_repository = PgTeamRepository::new(state.db.clone());
     let community_repository = PgCommunityRepository::new(state.db.clone());
-    let use_case = UpdateTeamUseCase::new(
-        Arc::new(team_repository),
-        Arc::new(community_repository),
-    );
+    let use_case =
+        UpdateTeamUseCase::new(Arc::new(team_repository), Arc::new(community_repository));
 
     use_case
         .execute(id, user.id, dto)

@@ -1,16 +1,14 @@
-use axum::{http::StatusCode, Json};
+use axum::{Json, http::StatusCode};
 use validator::Validate;
 
-use crate::shared::api_response::ApiResponse;
 use crate::domain::user::UserRepository;
 use crate::presentation::dtos::{
-    login_dto::LoginDto,
     auth_response_dto::{AuthResponseDto, UserResponseDto},
+    login_dto::LoginDto,
 };
+use crate::shared::api_response::ApiResponse;
 use crate::shared::{
-    api_error::ApiErrorResponse,
-    jwt_service::JwtService,
-    password_service::PasswordService,
+    api_error::ApiErrorResponse, jwt_service::JwtService, password_service::PasswordService,
 };
 
 pub struct LoginUserUseCase {
@@ -26,33 +24,37 @@ impl LoginUserUseCase {
         &self,
         dto: LoginDto,
     ) -> Result<Json<ApiResponse<AuthResponseDto>>, (StatusCode, Json<ApiErrorResponse>)> {
-        dto.validate()
-            .map_err(|e| {
-                (
-                    StatusCode::BAD_REQUEST,
-                    Json(ApiErrorResponse::new(e.to_string())),
-                )
-            })?;
-
-        let user = self.user_repository.get_by_username(&dto.username).await.map_err(|e| {
+        dto.validate().map_err(|e| {
             (
-                StatusCode::INTERNAL_SERVER_ERROR,
+                StatusCode::BAD_REQUEST,
                 Json(ApiErrorResponse::new(e.to_string())),
-            )
-        })?.ok_or_else(|| {
-            (
-                StatusCode::UNAUTHORIZED,
-                Json(ApiErrorResponse::new("Invalid credentials".to_string())),
             )
         })?;
 
-        let password_valid = PasswordService::verify_password(&dto.password, &user.password_hash)
+        let user = self
+            .user_repository
+            .get_by_username(&dto.username)
+            .await
             .map_err(|e| {
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(ApiErrorResponse::new(e.to_string())),
                 )
+            })?
+            .ok_or_else(|| {
+                (
+                    StatusCode::UNAUTHORIZED,
+                    Json(ApiErrorResponse::new("Invalid credentials".to_string())),
+                )
             })?;
+
+        let password_valid = PasswordService::verify_password(&dto.password, &user.password_hash)
+            .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiErrorResponse::new(e.to_string())),
+            )
+        })?;
 
         if !password_valid {
             return Err((
@@ -61,13 +63,12 @@ impl LoginUserUseCase {
             ));
         }
 
-        let token = JwtService::generate_token(user.id, user.username.clone())
-            .map_err(|e| {
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ApiErrorResponse::new(e.to_string())),
-                )
-            })?;
+        let token = JwtService::generate_token(user.id, user.username.clone()).map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiErrorResponse::new(e.to_string())),
+            )
+        })?;
 
         let auth_response = AuthResponseDto {
             token,
@@ -118,13 +119,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_login_success() {
-        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        unsafe {
+            std::env::set_var("JWT_SECRET", "test-secret");
+        }
         let user = make_user_with_password("correct_pass");
         let mut mock = MockUserRepo::new();
-        mock.expect_get_by_username().returning(move |_| Ok(Some(user.clone())));
+        mock.expect_get_by_username()
+            .returning(move |_| Ok(Some(user.clone())));
 
         let use_case = LoginUserUseCase::new(Box::new(mock));
-        let dto = LoginDto { username: "alice".to_string(), password: "correct_pass".to_string() };
+        let dto = LoginDto {
+            username: "alice".to_string(),
+            password: "correct_pass".to_string(),
+        };
         let result = use_case.execute(dto).await;
         assert!(result.is_ok());
     }
@@ -135,7 +142,10 @@ mod tests {
         mock.expect_get_by_username().returning(|_| Ok(None));
 
         let use_case = LoginUserUseCase::new(Box::new(mock));
-        let dto = LoginDto { username: "ghost".to_string(), password: "pass".to_string() };
+        let dto = LoginDto {
+            username: "ghost".to_string(),
+            password: "pass".to_string(),
+        };
         let result = use_case.execute(dto).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::UNAUTHORIZED);
@@ -145,10 +155,14 @@ mod tests {
     async fn test_login_wrong_password_returns_unauthorized() {
         let user = make_user_with_password("correct_pass");
         let mut mock = MockUserRepo::new();
-        mock.expect_get_by_username().returning(move |_| Ok(Some(user.clone())));
+        mock.expect_get_by_username()
+            .returning(move |_| Ok(Some(user.clone())));
 
         let use_case = LoginUserUseCase::new(Box::new(mock));
-        let dto = LoginDto { username: "alice".to_string(), password: "wrong_pass".to_string() };
+        let dto = LoginDto {
+            username: "alice".to_string(),
+            password: "wrong_pass".to_string(),
+        };
         let result = use_case.execute(dto).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::UNAUTHORIZED);
@@ -158,7 +172,10 @@ mod tests {
     async fn test_login_empty_credentials_returns_bad_request() {
         let mock = MockUserRepo::new();
         let use_case = LoginUserUseCase::new(Box::new(mock));
-        let dto = LoginDto { username: "".to_string(), password: "".to_string() };
+        let dto = LoginDto {
+            username: "".to_string(),
+            password: "".to_string(),
+        };
         let result = use_case.execute(dto).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);

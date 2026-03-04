@@ -133,7 +133,6 @@ DOCKER_BUILDKIT=1 docker build -t gamer-cm-api .
 ## Pendências conhecidas
 - Sem testes (unitários ou integração)
 - Dynamic query builder em `get_by_params` usa JsonValue (frágil) — preferir métodos dedicados
-- Paginação: struct `PaginationMeta` existe mas não é usado
 - Sem rate limiting
 - Sem logging estruturado (tracing)
 - JWT expira em 24h, sem refresh token

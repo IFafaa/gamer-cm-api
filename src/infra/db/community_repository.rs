@@ -109,9 +109,13 @@ impl CommunityRepository for PgCommunityRepository {
     }
 
     async fn insert(&self, community: &Community) -> anyhow::Result<()> {
-        sqlx::query!("INSERT INTO communities (name, user_id) VALUES ($1, $2)", community.name, community.user_id)
-            .execute(&self.pool)
-            .await?;
+        sqlx::query!(
+            "INSERT INTO communities (name, user_id) VALUES ($1, $2)",
+            community.name,
+            community.user_id
+        )
+        .execute(&self.pool)
+        .await?;
         Ok(())
     }
 
@@ -149,7 +153,8 @@ impl CommunityRepository for PgCommunityRepository {
         let row = sqlx::query!(
             "SELECT id, name, user_id, created_at, updated_at, enabled 
              FROM communities WHERE id = $1 AND user_id = $2 AND enabled = true",
-            id, user_id
+            id,
+            user_id
         )
         .fetch_optional(&self.pool)
         .await?;
@@ -178,7 +183,8 @@ impl CommunityRepository for PgCommunityRepository {
             "SELECT EXISTS(
                 SELECT 1 FROM communities WHERE id = $1 AND user_id = $2 AND enabled = true
             ) AS exists",
-            community_id, user_id
+            community_id,
+            user_id
         )
         .fetch_one(&self.pool)
         .await?;
@@ -202,7 +208,8 @@ impl CommunityRepository for PgCommunityRepository {
             "SELECT EXISTS(
                 SELECT 1 FROM communities WHERE name = $1 AND user_id = $2 AND enabled = true
             ) AS exists",
-            name, user_id
+            name,
+            user_id
         )
         .fetch_one(&self.pool)
         .await?;

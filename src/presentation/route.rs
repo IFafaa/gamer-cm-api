@@ -1,8 +1,8 @@
 use axum::Router;
 
-use crate::shared::state::AppState;
 use crate::infra::configs::swagger_config::create_swagger_ui;
 use crate::presentation::middleware::auth_middleware::auth_middleware;
+use crate::shared::state::AppState;
 
 use super::routes::auth_routes;
 use super::routes::community_routes;
@@ -22,10 +22,11 @@ pub fn create_routes(app_state: AppState) -> Router {
         .layer(axum::middleware::from_fn(auth_middleware));
 
     let api_routes = Router::new()
-        .nest("/auth", auth_routes::auth_routes().with_state(app_state.clone()))
+        .nest(
+            "/auth",
+            auth_routes::auth_routes().with_state(app_state.clone()),
+        )
         .merge(protected_routes);
 
-    Router::new()
-        .merge(create_swagger_ui())
-        .merge(api_routes)
+    Router::new().merge(create_swagger_ui()).merge(api_routes)
 }

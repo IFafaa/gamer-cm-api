@@ -19,6 +19,33 @@ A comprehensive REST API built with Rust for managing gaming communities, player
 - **RESTful Architecture** - Clean, documented API endpoints
 - **Authentication & Authorization** - Secure user access control
 
+## 📄 Pagination Support
+
+List endpoints return a `meta` block with pagination details and accept `page`/`limit` query params (defaults: `page=1`, `limit=10`, max `limit=50`).
+
+| Endpoint | Query Parameters | Description |
+| --- | --- | --- |
+| `GET /communities` | `page`, `limit` | Returns the authenticated user's communities with pagination metadata. |
+| `GET /parties` | `community_id`, `page`, `limit` | Filter by community and paginate the party history. |
+
+Example response:
+
+```json
+{
+  "data": [ /* results */ ],
+  "meta": {
+    "total": 42,
+    "page": 2,
+    "limit": 10,
+    "total_pages": 5,
+    "has_next_page": true,
+    "has_previous_page": true
+  },
+  "timestamp": "2026-03-04T20:45:00Z"
+}
+```
+
+
 ## 📋 Prerequisites
 
 Before you begin, make sure you have installed:

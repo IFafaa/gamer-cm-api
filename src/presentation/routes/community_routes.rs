@@ -14,19 +14,18 @@ use crate::{
     infra::db::community_repository::PgCommunityRepository,
     presentation::{
         dtos::{
-            create_community_dto::CreateCommunityDto,
-            update_community_dto::UpdateCommunityDto,
+            create_community_dto::CreateCommunityDto, update_community_dto::UpdateCommunityDto,
         },
         middleware::auth_middleware::AuthenticatedUser,
     },
     shared::{
-        api_error::ApiErrorResponse, api_response::ApiResponse, state::AppState,
-        validate_dto::validate_dto,
+        api_error::ApiErrorResponse, api_response::ApiResponse, pagination::PaginationParams,
+        state::AppState, validate_dto::validate_dto,
     },
 };
 use axum::{
     Router,
-    extract::{Json, Path, State, Extension},
+    extract::{Extension, Json, Path, Query, State},
     http::StatusCode,
     routing::{delete, get, post, put},
 };
@@ -59,14 +58,15 @@ async fn create_community(
 async fn get_communities(
     State(state): State<AppState>,
     Extension(user): Extension<AuthenticatedUser>,
+    Query(pagination): Query<PaginationParams>,
 ) -> Result<Json<ApiResponse<Vec<IResultGetCommunity>>>, (StatusCode, Json<ApiErrorResponse>)> {
     let community_repository = PgCommunityRepository::new(state.db.clone());
     let use_case = GetCommunitiesUseCase::new(Arc::new(community_repository));
 
     use_case
-        .execute(user.id)
+        .execute(user.id, pagination)
         .await
-        .map(|response| Json(response))
+        .map(Json)
         .map_err(|(status, error)| (status, Json(error)))
 }
 

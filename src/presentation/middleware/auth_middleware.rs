@@ -1,14 +1,6 @@
-use axum::{
-    extract::Request,
-    http::StatusCode,
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, http::StatusCode, middleware::Next, response::Response};
 
-use crate::shared::{
-    api_error::ApiErrorResponse,
-    jwt_service::JwtService,
-};
+use crate::shared::{api_error::ApiErrorResponse, jwt_service::JwtService};
 
 #[derive(Clone)]
 pub struct AuthenticatedUser {
@@ -27,7 +19,9 @@ pub async fn auth_middleware(
         .ok_or_else(|| {
             (
                 StatusCode::UNAUTHORIZED,
-                axum::Json(ApiErrorResponse::new("Missing authorization header".to_string())),
+                axum::Json(ApiErrorResponse::new(
+                    "Missing authorization header".to_string(),
+                )),
             )
         })?;
 
@@ -36,21 +30,27 @@ pub async fn auth_middleware(
     } else {
         return Err((
             StatusCode::UNAUTHORIZED,
-            axum::Json(ApiErrorResponse::new("Invalid authorization header format".to_string())),
+            axum::Json(ApiErrorResponse::new(
+                "Invalid authorization header format".to_string(),
+            )),
         ));
     };
 
     let claims = JwtService::validate_token(token).map_err(|_| {
         (
             StatusCode::UNAUTHORIZED,
-            axum::Json(ApiErrorResponse::new("Invalid or expired token".to_string())),
+            axum::Json(ApiErrorResponse::new(
+                "Invalid or expired token".to_string(),
+            )),
         )
     })?;
 
     let user_id = claims.sub.parse::<i32>().map_err(|_| {
         (
             StatusCode::UNAUTHORIZED,
-            axum::Json(ApiErrorResponse::new("Invalid user ID in token".to_string())),
+            axum::Json(ApiErrorResponse::new(
+                "Invalid user ID in token".to_string(),
+            )),
         )
     })?;
 
