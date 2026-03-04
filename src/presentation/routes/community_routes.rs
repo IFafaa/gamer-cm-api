@@ -8,11 +8,15 @@ use crate::{
             delete_community_use_case::DeleteCommunityUseCase,
             get_communities_use_case::GetCommunitiesUseCase,
             get_community_by_id_use_case::GetCommunityByIdUseCase,
+            update_community_use_case::UpdateCommunityUseCase,
         },
     },
     infra::db::community_repository::PgCommunityRepository,
     presentation::{
-        dtos::create_community_dto::CreateCommunityDto,
+        dtos::{
+            create_community_dto::CreateCommunityDto,
+            update_community_dto::UpdateCommunityDto,
+        },
         middleware::auth_middleware::AuthenticatedUser,
     },
     shared::{
@@ -24,7 +28,7 @@ use axum::{
     Router,
     extract::{Json, Path, State, Extension},
     http::StatusCode,
-    routing::{delete, get, post},
+    routing::{delete, get, post, put},
 };
 
 pub fn community_routes() -> Router<AppState> {
@@ -32,6 +36,7 @@ pub fn community_routes() -> Router<AppState> {
         .route("/", post(create_community))
         .route("/", get(get_communities))
         .route("/{id}", get(get_community_by_id))
+        .route("/{id}", put(update_community))
         .route("/{id}", delete(delete_community))
 }
 
@@ -77,6 +82,23 @@ async fn get_community_by_id(
         .execute(id, user.id)
         .await
         .map(|response| Json(response))
+        .map_err(|(status, error)| (status, Json(error)))
+}
+
+async fn update_community(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(id): Path<i32>,
+    Json(dto): Json<UpdateCommunityDto>,
+) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
+    validate_dto(&dto)?;
+
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = UpdateCommunityUseCase::new(Arc::new(community_repository));
+
+    use_case
+        .execute(id, user.id, dto)
+        .await
         .map_err(|(status, error)| (status, Json(error)))
 }
 
