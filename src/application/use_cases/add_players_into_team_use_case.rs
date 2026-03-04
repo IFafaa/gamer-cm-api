@@ -7,7 +7,11 @@ use crate::{
     shared::api_error::ApiErrorResponse,
 };
 
-pub struct AddPlayersIntoTeamUseCase<PR: PlayerRepository, TR: TeamRepository, CR: CommunityRepository> {
+pub struct AddPlayersIntoTeamUseCase<
+    PR: PlayerRepository,
+    TR: TeamRepository,
+    CR: CommunityRepository,
+> {
     player_repository: Arc<PR>,
     team_repository: Arc<TR>,
     community_repository: Arc<CR>,

@@ -1,15 +1,16 @@
-use axum::{routing::get, response::Html, Json, Router};
+use axum::{Json, Router, response::Html, routing::get};
 use serde_json::Value;
 
 async fn openapi_spec() -> Json<Value> {
     let swagger_content = include_str!("../../../swagger.json");
-    let swagger_json: Value = serde_json::from_str(swagger_content)
-        .expect("Failed to parse swagger.json");
+    let swagger_json: Value =
+        serde_json::from_str(swagger_content).expect("Failed to parse swagger.json");
     Json(swagger_json)
 }
 
 async fn swagger_ui() -> Html<&'static str> {
-    Html(r#"
+    Html(
+        r#"
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,7 +56,8 @@ async fn swagger_ui() -> Html<&'static str> {
     </script>
 </body>
 </html>
-    "#)
+    "#,
+    )
 }
 
 pub fn create_swagger_ui() -> Router {
@@ -63,4 +65,3 @@ pub fn create_swagger_ui() -> Router {
         .route("/api-docs/openapi.json", get(openapi_spec))
         .route("/api-docs/", get(swagger_ui))
 }
-

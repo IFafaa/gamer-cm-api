@@ -87,7 +87,9 @@ mod tests {
         mock.expect_insert().returning(|_| Ok(()));
 
         let use_case = CreateCommunityUseCase::new(Arc::new(mock));
-        let dto = CreateCommunityDto { name: "Pro Gamers".to_string() };
+        let dto = CreateCommunityDto {
+            name: "Pro Gamers".to_string(),
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_ok());
     }
@@ -96,7 +98,9 @@ mod tests {
     async fn test_create_community_empty_name_returns_bad_request() {
         let mock = MockCommunityRepo::new();
         let use_case = CreateCommunityUseCase::new(Arc::new(mock));
-        let dto = CreateCommunityDto { name: "".to_string() };
+        let dto = CreateCommunityDto {
+            name: "".to_string(),
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);
@@ -108,7 +112,9 @@ mod tests {
         mock.expect_exists().returning(|_, _| Ok(true));
 
         let use_case = CreateCommunityUseCase::new(Arc::new(mock));
-        let dto = CreateCommunityDto { name: "Existing".to_string() };
+        let dto = CreateCommunityDto {
+            name: "Existing".to_string(),
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::CONFLICT);
@@ -117,10 +123,13 @@ mod tests {
     #[tokio::test]
     async fn test_create_community_repository_error_returns_internal_error() {
         let mut mock = MockCommunityRepo::new();
-        mock.expect_exists().returning(|_, _| Err(anyhow::anyhow!("db error")));
+        mock.expect_exists()
+            .returning(|_, _| Err(anyhow::anyhow!("db error")));
 
         let use_case = CreateCommunityUseCase::new(Arc::new(mock));
-        let dto = CreateCommunityDto { name: "My Community".to_string() };
+        let dto = CreateCommunityDto {
+            name: "My Community".to_string(),
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::INTERNAL_SERVER_ERROR);

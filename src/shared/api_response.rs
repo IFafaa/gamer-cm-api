@@ -10,12 +10,12 @@ pub struct ApiResponse<T> {
 
 #[derive(Serialize)]
 pub struct PaginationMeta {
-    total: usize,
-    page: usize,
-    limit: usize,
-    total_pages: usize,
-    has_next_page: bool,
-    has_previous_page: bool,
+    pub total: usize,
+    pub page: usize,
+    pub limit: usize,
+    pub total_pages: usize,
+    pub has_next_page: bool,
+    pub has_previous_page: bool,
 }
 
 impl<T> ApiResponse<T> {

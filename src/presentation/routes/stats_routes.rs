@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
 use axum::{
-    Router,
-    extract::{Path, State, Extension},
+    Json, Router,
+    extract::{Extension, Path, State},
     http::StatusCode,
-    Json,
     routing::get,
 };
 
@@ -19,8 +18,7 @@ use crate::{
 };
 
 pub fn stats_routes() -> Router<AppState> {
-    Router::new()
-        .route("/communities/{id}", get(get_community_stats))
+    Router::new().route("/communities/{id}", get(get_community_stats))
 }
 
 async fn get_community_stats(

@@ -1,16 +1,14 @@
-use axum::{http::StatusCode, Json};
+use axum::{Json, http::StatusCode};
 use validator::Validate;
 
-use crate::shared::api_response::ApiResponse;
 use crate::domain::user::{User, UserRepository};
 use crate::presentation::dtos::{
-    register_dto::RegisterDto,
     auth_response_dto::{AuthResponseDto, UserResponseDto},
+    register_dto::RegisterDto,
 };
+use crate::shared::api_response::ApiResponse;
 use crate::shared::{
-    api_error::ApiErrorResponse,
-    jwt_service::JwtService,
-    password_service::PasswordService,
+    api_error::ApiErrorResponse, jwt_service::JwtService, password_service::PasswordService,
 };
 
 pub struct RegisterUserUseCase {
@@ -26,45 +24,55 @@ impl RegisterUserUseCase {
         &self,
         dto: RegisterDto,
     ) -> Result<Json<ApiResponse<AuthResponseDto>>, (StatusCode, Json<ApiErrorResponse>)> {
-        dto.validate()
-            .map_err(|e| {
-                (
-                    StatusCode::BAD_REQUEST,
-                    Json(ApiErrorResponse::new(e.to_string())),
-                )
-            })?;
-
-        if self.user_repository.get_by_username(&dto.username).await.map_err(|e| {
+        dto.validate().map_err(|e| {
             (
-                StatusCode::INTERNAL_SERVER_ERROR,
+                StatusCode::BAD_REQUEST,
                 Json(ApiErrorResponse::new(e.to_string())),
             )
-        })?.is_some() {
+        })?;
+
+        if self
+            .user_repository
+            .get_by_username(&dto.username)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiErrorResponse::new(e.to_string())),
+                )
+            })?
+            .is_some()
+        {
             return Err((
                 StatusCode::CONFLICT,
                 Json(ApiErrorResponse::new("Username already exists".to_string())),
             ));
         }
 
-        if self.user_repository.get_by_email(&dto.email).await.map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ApiErrorResponse::new(e.to_string())),
-            )
-        })?.is_some() {
+        if self
+            .user_repository
+            .get_by_email(&dto.email)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiErrorResponse::new(e.to_string())),
+                )
+            })?
+            .is_some()
+        {
             return Err((
                 StatusCode::CONFLICT,
                 Json(ApiErrorResponse::new("Email already exists".to_string())),
             ));
         }
 
-        let password_hash = PasswordService::hash_password(&dto.password)
-            .map_err(|e| {
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ApiErrorResponse::new(e.to_string())),
-                )
-            })?;
+        let password_hash = PasswordService::hash_password(&dto.password).map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiErrorResponse::new(e.to_string())),
+            )
+        })?;
 
         let user = User::new(dto.username.clone(), dto.email, password_hash);
         let created_user = self.user_repository.insert(&user).await.map_err(|e| {
@@ -137,7 +145,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_register_success() {
-        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        unsafe {
+            std::env::set_var("JWT_SECRET", "test-secret");
+        }
         let mut mock = MockUserRepo::new();
         mock.expect_get_by_username().returning(|_| Ok(None));
         mock.expect_get_by_email().returning(|_| Ok(None));

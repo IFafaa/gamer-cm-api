@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Path, Query, State, Extension},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
     routing::{delete, get, patch, post},
 };
@@ -25,12 +25,17 @@ use crate::{
         dtos::{create_party_dto::CreatePartyDto, end_party_dto::EndPartyDto},
         middleware::auth_middleware::AuthenticatedUser,
     },
-    shared::{api_error::ApiErrorResponse, api_response::ApiResponse, state::AppState},
+    shared::{
+        api_error::ApiErrorResponse, api_response::ApiResponse, pagination::PaginationParams,
+        state::AppState,
+    },
 };
 
 #[derive(Deserialize)]
 pub struct GetPartiesQuery {
     pub community_id: Option<i32>,
+    #[serde(flatten)]
+    pub pagination: PaginationParams,
 }
 
 pub fn party_routes() -> Router<AppState> {
@@ -71,10 +76,11 @@ async fn get_parties(
 ) -> Result<Json<ApiResponse<Vec<IResultGetParty>>>, (StatusCode, Json<ApiErrorResponse>)> {
     let party_repository = PgPartyRepository::new(state.db.clone());
     let community_repository = PgCommunityRepository::new(state.db.clone());
-    let use_case = GetPartiesUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
+    let use_case =
+        GetPartiesUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
 
     use_case
-        .execute(user.id, query.community_id)
+        .execute(user.id, query.community_id, query.pagination)
         .await
         .map(Json)
         .map_err(|(status, error)| (status, Json(error)))
@@ -109,7 +115,8 @@ async fn delete_party(
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     let party_repository = PgPartyRepository::new(state.db.clone());
     let community_repository = PgCommunityRepository::new(state.db.clone());
-    let use_case = DeletePartyUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
+    let use_case =
+        DeletePartyUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
 
     use_case
         .execute(party_id, user.id)
@@ -124,7 +131,8 @@ async fn get_party_by_id(
 ) -> Result<Json<ApiResponse<IResultGetParty>>, (StatusCode, Json<ApiErrorResponse>)> {
     let party_repository = PgPartyRepository::new(state.db.clone());
     let community_repository = PgCommunityRepository::new(state.db.clone());
-    let use_case = GetPartyByIdUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
+    let use_case =
+        GetPartyByIdUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
 
     use_case
         .execute(party_id, user.id)

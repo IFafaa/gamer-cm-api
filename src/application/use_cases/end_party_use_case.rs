@@ -13,9 +13,7 @@ pub struct EndPartyUseCase<PR: PartyRepository, TR: TeamRepository, CR: Communit
     community_repository: Arc<CR>,
 }
 
-impl<PR: PartyRepository, TR: TeamRepository, CR: CommunityRepository>
-    EndPartyUseCase<PR, TR, CR>
-{
+impl<PR: PartyRepository, TR: TeamRepository, CR: CommunityRepository> EndPartyUseCase<PR, TR, CR> {
     pub fn new(
         party_repository: Arc<PR>,
         team_repository: Arc<TR>,
@@ -121,7 +119,9 @@ impl<PR: PartyRepository, TR: TeamRepository, CR: CommunityRepository>
 mod tests {
     use super::*;
     use crate::domain::{
-        community::Community, party::{IGetPartiesByParams, Party}, team::Team,
+        community::Community,
+        party::{IGetPartiesByParams, Party},
+        team::Team,
     };
     use mockall::mock;
 
@@ -183,16 +183,27 @@ mod tests {
     async fn test_end_party_without_winner_success() {
         let party = make_party_with_teams(vec![]);
         let mut party_repo = MockPartyRepo::new();
-        party_repo.expect_get_by_id().returning(move |_| Ok(Some(make_party_with_teams(vec![]))));
+        party_repo
+            .expect_get_by_id()
+            .returning(move |_| Ok(Some(make_party_with_teams(vec![]))));
         party_repo.expect_save().returning(|_| Ok(()));
 
         let mut community_repo = MockCommunityRepo::new();
-        community_repo.expect_belongs_to_user().returning(|_, _| Ok(true));
+        community_repo
+            .expect_belongs_to_user()
+            .returning(|_, _| Ok(true));
 
         let team_repo = MockTeamRepo::new();
 
-        let use_case = EndPartyUseCase::new(Arc::new(party_repo), Arc::new(team_repo), Arc::new(community_repo));
-        let dto = EndPartyDto { party_id: 1, team_winner_id: None };
+        let use_case = EndPartyUseCase::new(
+            Arc::new(party_repo),
+            Arc::new(team_repo),
+            Arc::new(community_repo),
+        );
+        let dto = EndPartyDto {
+            party_id: 1,
+            team_winner_id: None,
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_ok());
         drop(party);
@@ -208,7 +219,10 @@ mod tests {
             Arc::new(MockTeamRepo::new()),
             Arc::new(MockCommunityRepo::new()),
         );
-        let dto = EndPartyDto { party_id: 99, team_winner_id: None };
+        let dto = EndPartyDto {
+            party_id: 99,
+            team_winner_id: None,
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::NOT_FOUND);
@@ -217,17 +231,24 @@ mod tests {
     #[tokio::test]
     async fn test_end_party_not_owned_returns_forbidden() {
         let mut party_repo = MockPartyRepo::new();
-        party_repo.expect_get_by_id().returning(|_| Ok(Some(make_party_with_teams(vec![]))));
+        party_repo
+            .expect_get_by_id()
+            .returning(|_| Ok(Some(make_party_with_teams(vec![]))));
 
         let mut community_repo = MockCommunityRepo::new();
-        community_repo.expect_belongs_to_user().returning(|_, _| Ok(false));
+        community_repo
+            .expect_belongs_to_user()
+            .returning(|_, _| Ok(false));
 
         let use_case = EndPartyUseCase::new(
             Arc::new(party_repo),
             Arc::new(MockTeamRepo::new()),
             Arc::new(community_repo),
         );
-        let dto = EndPartyDto { party_id: 1, team_winner_id: None };
+        let dto = EndPartyDto {
+            party_id: 1,
+            team_winner_id: None,
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::FORBIDDEN);
@@ -236,17 +257,24 @@ mod tests {
     #[tokio::test]
     async fn test_end_already_finished_party_returns_bad_request() {
         let mut party_repo = MockPartyRepo::new();
-        party_repo.expect_get_by_id().returning(|_| Ok(Some(make_finished_party())));
+        party_repo
+            .expect_get_by_id()
+            .returning(|_| Ok(Some(make_finished_party())));
 
         let mut community_repo = MockCommunityRepo::new();
-        community_repo.expect_belongs_to_user().returning(|_, _| Ok(true));
+        community_repo
+            .expect_belongs_to_user()
+            .returning(|_, _| Ok(true));
 
         let use_case = EndPartyUseCase::new(
             Arc::new(party_repo),
             Arc::new(MockTeamRepo::new()),
             Arc::new(community_repo),
         );
-        let dto = EndPartyDto { party_id: 1, team_winner_id: None };
+        let dto = EndPartyDto {
+            party_id: 1,
+            team_winner_id: None,
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);
@@ -260,20 +288,29 @@ mod tests {
         let party = make_party_with_teams(vec![team_in_party]);
         let mut party_repo = MockPartyRepo::new();
         let party_clone = Party::new("CS:GO".to_string(), vec![make_team(1)], 1);
-        party_repo.expect_get_by_id().returning(move |_| Ok(Some(Party::new("CS:GO".to_string(), vec![make_team(1)], 1))));
+        party_repo
+            .expect_get_by_id()
+            .returning(move |_| Ok(Some(Party::new("CS:GO".to_string(), vec![make_team(1)], 1))));
 
         let mut community_repo = MockCommunityRepo::new();
-        community_repo.expect_belongs_to_user().returning(|_, _| Ok(true));
+        community_repo
+            .expect_belongs_to_user()
+            .returning(|_, _| Ok(true));
 
         let mut team_repo = MockTeamRepo::new();
-        team_repo.expect_get_by_id().returning(move |_| Ok(Some(make_team(99))));
+        team_repo
+            .expect_get_by_id()
+            .returning(move |_| Ok(Some(make_team(99))));
 
         let use_case = EndPartyUseCase::new(
             Arc::new(party_repo),
             Arc::new(team_repo),
             Arc::new(community_repo),
         );
-        let dto = EndPartyDto { party_id: 1, team_winner_id: Some(99) };
+        let dto = EndPartyDto {
+            party_id: 1,
+            team_winner_id: Some(99),
+        };
         let result = use_case.execute(dto, 1).await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);
