@@ -6,7 +6,7 @@ use crate::{
     application::interfaces::result_get_party_interface::IResultGetParty,
     domain::{
         community::CommunityRepository,
-        party::{IGetPartiesByParams, PartyRepository},
+        party::PartyRepository,
     },
     shared::{api_error::ApiErrorResponse, api_response::ApiResponse},
 };
@@ -71,18 +71,9 @@ impl<PR: PartyRepository, CR: CommunityRepository> GetPartiesUseCase<PR, CR> {
 
         let mut all_parties = Vec::new();
         for cid in community_ids {
-            let params = IGetPartiesByParams {
-                community_id: Some(cid),
-                game_name: None,
-                created_at: None,
-                updated_at: None,
-                teams_ids: None,
-                team_winner_ids: None,
-            };
-
             let parties = self
                 .party_repository
-                .get_by_params(params)
+                .get_by_community_id(cid)
                 .await
                 .map_err(|_| {
                     (

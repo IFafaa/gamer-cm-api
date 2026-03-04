@@ -55,6 +55,7 @@ impl Party {
 pub trait PartyRepository: Send + Sync {
     async fn insert(&self, party: &Party) -> anyhow::Result<()>;
     async fn get_by_params(&self, params: IGetPartiesByParams) -> anyhow::Result<Vec<Party>>;
+    async fn get_by_community_id(&self, community_id: i32) -> anyhow::Result<Vec<Party>>;
     async fn get_by_id(&self, id: i32) -> anyhow::Result<Option<Party>>;
     async fn save(&self, party: &Party) -> anyhow::Result<()>;
 }

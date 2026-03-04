@@ -235,6 +235,64 @@ impl PartyRepository for PgPartyRepository {
         Ok(parties)
     }
 
+    async fn get_by_community_id(&self, community_id: i32) -> anyhow::Result<Vec<Party>> {
+        let party_rows = sqlx::query!(
+            r#"
+            SELECT id, community_id, game_name, team_winner_id, finished_at, created_at, updated_at, enabled
+            FROM parties
+            WHERE community_id = $1 AND enabled = true
+            ORDER BY created_at DESC
+            "#,
+            community_id
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut parties = Vec::new();
+
+        for row in party_rows {
+            let team_rows = sqlx::query!(
+                r#"
+                SELECT t.id, t.community_id, t.enabled, t.name, t.created_at, t.updated_at 
+                FROM teams t 
+                INNER JOIN party_teams pt ON pt.team_id = t.id 
+                WHERE pt.party_id = $1 AND t.enabled = true
+                "#,
+                row.id
+            )
+            .fetch_all(&self.pool)
+            .await?;
+
+            let mut teams = Vec::new();
+            for t in team_rows {
+                let players = self.fetch_team_players(t.community_id, t.id).await?;
+                teams.push(Team {
+                    id: t.id,
+                    community_id: t.community_id,
+                    enabled: t.enabled,
+                    name: t.name,
+                    created_at: t.created_at,
+                    updated_at: t.updated_at,
+                    players,
+                });
+            }
+
+            parties.push(Party {
+                id: row.id,
+                community_id: row.community_id,
+                game_name: row.game_name.unwrap_or_default(),
+                team_winner_id: row.team_winner_id,
+                finished_at: row.finished_at,
+                created_at: row.created_at,
+                updated_at: row.updated_at,
+                teams,
+                enabled: row.enabled,
+            });
+        }
+
+        Ok(parties)
+    }
+
     async fn get_by_id(&self, id: i32) -> anyhow::Result<Option<Party>> {
         let row = sqlx::query!(
             r#"
