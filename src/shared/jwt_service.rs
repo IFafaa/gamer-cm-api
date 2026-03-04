@@ -47,3 +47,41 @@ impl JwtService {
         claims.sub.parse().map_err(|e| anyhow::anyhow!("Invalid user ID in token: {}", e))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_and_validate_token() {
+        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        let token = JwtService::generate_token(1, "alice".to_string()).unwrap();
+        let claims = JwtService::validate_token(&token).unwrap();
+        assert_eq!(claims.sub, "1");
+        assert_eq!(claims.username, "alice");
+    }
+
+    #[test]
+    fn test_extract_user_id_from_token() {
+        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        let token = JwtService::generate_token(42, "bob".to_string()).unwrap();
+        let user_id = JwtService::extract_user_id_from_token(&token).unwrap();
+        assert_eq!(user_id, 42);
+    }
+
+    #[test]
+    fn test_validate_invalid_token_returns_error() {
+        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        let result = JwtService::validate_token("not.a.valid.token");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_token_contains_exp_in_future() {
+        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        let token = JwtService::generate_token(1, "user".to_string()).unwrap();
+        let claims = JwtService::validate_token(&token).unwrap();
+        let now = chrono::Utc::now().timestamp() as usize;
+        assert!(claims.exp > now);
+    }
+}

@@ -45,3 +45,42 @@ pub trait TeamRepository: Send + Sync {
     async fn get_by_ids(&self, ids: Vec<i32>) -> anyhow::Result<Vec<Team>>;
     async fn save(&self, team: &Team) -> anyhow::Result<()>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::player::Player;
+
+    fn make_player(id: i32) -> Player {
+        let mut p = Player::new(format!("player_{}", id), 1);
+        p.id = id;
+        p
+    }
+
+    #[test]
+    fn test_team_new_sets_fields() {
+        let team = Team::new("Alpha Squad".to_string(), 7);
+        assert_eq!(team.name, "Alpha Squad");
+        assert_eq!(team.community_id, 7);
+        assert_eq!(team.id, 0);
+        assert!(team.players.is_empty());
+        assert!(team.enabled);
+    }
+
+    #[test]
+    fn test_team_add_player_increments_list() {
+        let mut team = Team::new("Alpha Squad".to_string(), 1);
+        assert!(team.players.is_empty());
+        team.add_player(make_player(1));
+        assert_eq!(team.players.len(), 1);
+        team.add_player(make_player(2));
+        assert_eq!(team.players.len(), 2);
+    }
+
+    #[test]
+    fn test_team_add_player_stores_correct_nickname() {
+        let mut team = Team::new("Squad".to_string(), 1);
+        team.add_player(make_player(10));
+        assert_eq!(team.players[0].nickname, "player_10");
+    }
+}

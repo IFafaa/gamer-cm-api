@@ -38,3 +38,36 @@ pub trait UserRepository: Send + Sync {
     async fn update(&self, user: &User) -> anyhow::Result<()>;
     async fn delete(&self, id: i32) -> anyhow::Result<()>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_user_new_sets_fields() {
+        let user = User::new(
+            "alice".to_string(),
+            "alice@example.com".to_string(),
+            "hashed_pass".to_string(),
+        );
+        assert_eq!(user.username, "alice");
+        assert_eq!(user.email, "alice@example.com");
+        assert_eq!(user.password_hash, "hashed_pass");
+        assert_eq!(user.id, 0);
+        assert!(user.enabled);
+    }
+
+    #[test]
+    fn test_user_new_is_enabled_by_default() {
+        let user = User::new("bob".to_string(), "bob@test.com".to_string(), "hash".to_string());
+        assert!(user.enabled);
+    }
+
+    #[test]
+    fn test_user_clone() {
+        let user = User::new("carol".to_string(), "carol@test.com".to_string(), "h".to_string());
+        let cloned = user.clone();
+        assert_eq!(cloned.username, user.username);
+        assert_eq!(cloned.email, user.email);
+    }
+}

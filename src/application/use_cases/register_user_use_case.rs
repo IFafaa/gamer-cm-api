@@ -94,3 +94,96 @@ impl RegisterUserUseCase {
         Ok(Json(ApiResponse::success(auth_response)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::user::User;
+    use crate::shared::date_time::DateTime;
+    use mockall::mock;
+
+    mock! {
+        pub UserRepo {}
+        #[async_trait::async_trait]
+        impl UserRepository for UserRepo {
+            async fn insert(&self, user: &User) -> anyhow::Result<User>;
+            async fn get_by_username(&self, username: &str) -> anyhow::Result<Option<User>>;
+            async fn get_by_email(&self, email: &str) -> anyhow::Result<Option<User>>;
+            async fn get_by_id(&self, id: i32) -> anyhow::Result<Option<User>>;
+            async fn update(&self, user: &User) -> anyhow::Result<()>;
+            async fn delete(&self, id: i32) -> anyhow::Result<()>;
+        }
+    }
+
+    fn make_inserted_user() -> User {
+        User {
+            id: 1,
+            username: "alice".to_string(),
+            email: "alice@example.com".to_string(),
+            password_hash: "hash".to_string(),
+            created_at: DateTime::now(),
+            updated_at: DateTime::now(),
+            enabled: true,
+        }
+    }
+
+    fn valid_dto() -> RegisterDto {
+        RegisterDto {
+            username: "alice".to_string(),
+            email: "alice@example.com".to_string(),
+            password: "secret123".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_register_success() {
+        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        let mut mock = MockUserRepo::new();
+        mock.expect_get_by_username().returning(|_| Ok(None));
+        mock.expect_get_by_email().returning(|_| Ok(None));
+        mock.expect_insert().returning(|_| Ok(make_inserted_user()));
+
+        let use_case = RegisterUserUseCase::new(Box::new(mock));
+        let result = use_case.execute(valid_dto()).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_register_duplicate_username_returns_conflict() {
+        let mut mock = MockUserRepo::new();
+        mock.expect_get_by_username()
+            .returning(|_| Ok(Some(make_inserted_user())));
+
+        let use_case = RegisterUserUseCase::new(Box::new(mock));
+        let result = use_case.execute(valid_dto()).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn test_register_duplicate_email_returns_conflict() {
+        let mut mock = MockUserRepo::new();
+        mock.expect_get_by_username().returning(|_| Ok(None));
+        mock.expect_get_by_email()
+            .returning(|_| Ok(Some(make_inserted_user())));
+
+        let use_case = RegisterUserUseCase::new(Box::new(mock));
+        let result = use_case.execute(valid_dto()).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn test_register_invalid_dto_returns_bad_request() {
+        let mock = MockUserRepo::new();
+        let use_case = RegisterUserUseCase::new(Box::new(mock));
+        let dto = RegisterDto {
+            username: "ab".to_string(), // too short
+            email: "alice@example.com".to_string(),
+            password: "secret123".to_string(),
+        };
+        let result = use_case.execute(dto).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);
+    }
+}

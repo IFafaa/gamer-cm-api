@@ -81,3 +81,86 @@ impl LoginUserUseCase {
         Ok(Json(ApiResponse::success(auth_response)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::user::User;
+    use crate::shared::date_time::DateTime;
+    use crate::shared::password_service::PasswordService;
+    use mockall::mock;
+
+    mock! {
+        pub UserRepo {}
+        #[async_trait::async_trait]
+        impl UserRepository for UserRepo {
+            async fn insert(&self, user: &User) -> anyhow::Result<User>;
+            async fn get_by_username(&self, username: &str) -> anyhow::Result<Option<User>>;
+            async fn get_by_email(&self, email: &str) -> anyhow::Result<Option<User>>;
+            async fn get_by_id(&self, id: i32) -> anyhow::Result<Option<User>>;
+            async fn update(&self, user: &User) -> anyhow::Result<()>;
+            async fn delete(&self, id: i32) -> anyhow::Result<()>;
+        }
+    }
+
+    fn make_user_with_password(password: &str) -> User {
+        let hash = PasswordService::hash_password(password).unwrap();
+        User {
+            id: 1,
+            username: "alice".to_string(),
+            email: "alice@example.com".to_string(),
+            password_hash: hash,
+            created_at: DateTime::now(),
+            updated_at: DateTime::now(),
+            enabled: true,
+        }
+    }
+
+    #[tokio::test]
+    async fn test_login_success() {
+        unsafe { std::env::set_var("JWT_SECRET", "test-secret"); }
+        let user = make_user_with_password("correct_pass");
+        let mut mock = MockUserRepo::new();
+        mock.expect_get_by_username().returning(move |_| Ok(Some(user.clone())));
+
+        let use_case = LoginUserUseCase::new(Box::new(mock));
+        let dto = LoginDto { username: "alice".to_string(), password: "correct_pass".to_string() };
+        let result = use_case.execute(dto).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_login_user_not_found_returns_unauthorized() {
+        let mut mock = MockUserRepo::new();
+        mock.expect_get_by_username().returning(|_| Ok(None));
+
+        let use_case = LoginUserUseCase::new(Box::new(mock));
+        let dto = LoginDto { username: "ghost".to_string(), password: "pass".to_string() };
+        let result = use_case.execute(dto).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn test_login_wrong_password_returns_unauthorized() {
+        let user = make_user_with_password("correct_pass");
+        let mut mock = MockUserRepo::new();
+        mock.expect_get_by_username().returning(move |_| Ok(Some(user.clone())));
+
+        let use_case = LoginUserUseCase::new(Box::new(mock));
+        let dto = LoginDto { username: "alice".to_string(), password: "wrong_pass".to_string() };
+        let result = use_case.execute(dto).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn test_login_empty_credentials_returns_bad_request() {
+        let mock = MockUserRepo::new();
+        let use_case = LoginUserUseCase::new(Box::new(mock));
+        let dto = LoginDto { username: "".to_string(), password: "".to_string() };
+        let result = use_case.execute(dto).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);
+    }
+}
