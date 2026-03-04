@@ -1,26 +1,38 @@
 use axum::http::StatusCode;
 
 use crate::{
-    domain::{party::PartyRepository, team::TeamRepository},
+    domain::{community::CommunityRepository, party::PartyRepository, team::TeamRepository},
     presentation::dtos::end_party_dto::EndPartyDto,
     shared::api_error::ApiErrorResponse,
 };
 use std::sync::Arc;
 
-pub struct EndPartyUseCase<PR: PartyRepository, TR: TeamRepository> {
+pub struct EndPartyUseCase<PR: PartyRepository, TR: TeamRepository, CR: CommunityRepository> {
     party_repository: Arc<PR>,
     team_repository: Arc<TR>,
+    community_repository: Arc<CR>,
 }
 
-impl<PR: PartyRepository, TR: TeamRepository> EndPartyUseCase<PR, TR> {
-    pub fn new(party_repository: Arc<PR>, team_repository: Arc<TR>) -> Self {
+impl<PR: PartyRepository, TR: TeamRepository, CR: CommunityRepository>
+    EndPartyUseCase<PR, TR, CR>
+{
+    pub fn new(
+        party_repository: Arc<PR>,
+        team_repository: Arc<TR>,
+        community_repository: Arc<CR>,
+    ) -> Self {
         Self {
             party_repository,
             team_repository,
+            community_repository,
         }
     }
 
-    pub async fn execute(&self, dto: EndPartyDto) -> Result<(), (StatusCode, ApiErrorResponse)> {
+    pub async fn execute(
+        &self,
+        dto: EndPartyDto,
+        user_id: i32,
+    ) -> Result<(), (StatusCode, ApiErrorResponse)> {
         let party = self
             .party_repository
             .get_by_id(dto.party_id)
@@ -32,9 +44,27 @@ impl<PR: PartyRepository, TR: TeamRepository> EndPartyUseCase<PR, TR> {
                 )
             })?
             .ok_or((
-                StatusCode::BAD_REQUEST,
+                StatusCode::NOT_FOUND,
                 ApiErrorResponse::new("Party not found".to_string()),
             ))?;
+
+        let belongs = self
+            .community_repository
+            .belongs_to_user(party.community_id, user_id)
+            .await
+            .map_err(|_| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    ApiErrorResponse::new("Failed to verify ownership".to_string()),
+                )
+            })?;
+
+        if !belongs {
+            return Err((
+                StatusCode::FORBIDDEN,
+                ApiErrorResponse::new("Party does not belong to user".to_string()),
+            ));
+        }
 
         if party.is_finished() {
             return Err((

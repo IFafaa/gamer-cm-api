@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     domain::{
+        community::CommunityRepository,
         player::PlayerRepository,
         team::TeamRepository,
     },
@@ -9,25 +10,31 @@ use crate::{
     shared::api_error::ApiErrorResponse,
 };
 
-pub struct DeletePlayersOfTeamUseCase<PR: PlayerRepository, TR: TeamRepository> {
+pub struct DeletePlayersOfTeamUseCase<PR: PlayerRepository, TR: TeamRepository, CR: CommunityRepository> {
     player_repository: Arc<PR>,
     team_repository: Arc<TR>,
+    community_repository: Arc<CR>,
 }
 
-impl<PR: PlayerRepository, TR: TeamRepository> DeletePlayersOfTeamUseCase<PR, TR> {
+impl<PR: PlayerRepository, TR: TeamRepository, CR: CommunityRepository>
+    DeletePlayersOfTeamUseCase<PR, TR, CR>
+{
     pub fn new(
         player_repository: Arc<PR>,
         team_repository: Arc<TR>,
+        community_repository: Arc<CR>,
     ) -> Self {
         Self {
             player_repository,
             team_repository,
+            community_repository,
         }
     }
 
     pub async fn execute(
         &self,
         dto: DeletePlayersOfTeamDto,
+        user_id: i32,
     ) -> Result<(), (axum::http::StatusCode, ApiErrorResponse)> {
         let mut team = self
             .team_repository
@@ -45,6 +52,24 @@ impl<PR: PlayerRepository, TR: TeamRepository> DeletePlayersOfTeamUseCase<PR, TR
                     ApiErrorResponse::new("Team not found".to_string()),
                 )
             })?;
+
+        let belongs = self
+            .community_repository
+            .belongs_to_user(team.community_id, user_id)
+            .await
+            .map_err(|_| {
+                (
+                    axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                    ApiErrorResponse::new("Failed to verify ownership".to_string()),
+                )
+            })?;
+
+        if !belongs {
+            return Err((
+                axum::http::StatusCode::FORBIDDEN,
+                ApiErrorResponse::new("Team does not belong to user".to_string()),
+            ));
+        }
 
         if let Some(name) = dto.name {
             team.name = name;

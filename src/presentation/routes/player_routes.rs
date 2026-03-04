@@ -49,13 +49,18 @@ async fn create_player_into_community(
 
 async fn delete_player_of_community(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Path(id): Path<i32>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     let player_repository = PgPlayerRepository::new(state.db.clone());
-    let use_case = DeletePlayerOfCommunityUseCase::new(Arc::new(player_repository));
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = DeletePlayerOfCommunityUseCase::new(
+        Arc::new(player_repository),
+        Arc::new(community_repository),
+    );
 
     use_case
-        .execute(id)
+        .execute(id, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }

@@ -2,27 +2,36 @@ use axum::http::StatusCode;
 use std::sync::Arc;
 
 use crate::{
-    domain::{player::PlayerRepository, team::TeamRepository},
+    domain::{community::CommunityRepository, player::PlayerRepository, team::TeamRepository},
     presentation::dtos::add_players_into_team_dto::AddPlayersIntoTeamDto,
     shared::api_error::ApiErrorResponse,
 };
 
-pub struct AddPlayersIntoTeamUseCase<PR: PlayerRepository, TR: TeamRepository> {
+pub struct AddPlayersIntoTeamUseCase<PR: PlayerRepository, TR: TeamRepository, CR: CommunityRepository> {
     player_repository: Arc<PR>,
     team_repository: Arc<TR>,
+    community_repository: Arc<CR>,
 }
 
-impl<PR: PlayerRepository, TR: TeamRepository> AddPlayersIntoTeamUseCase<PR, TR> {
-    pub fn new(player_repository: Arc<PR>, team_repository: Arc<TR>) -> Self {
+impl<PR: PlayerRepository, TR: TeamRepository, CR: CommunityRepository>
+    AddPlayersIntoTeamUseCase<PR, TR, CR>
+{
+    pub fn new(
+        player_repository: Arc<PR>,
+        team_repository: Arc<TR>,
+        community_repository: Arc<CR>,
+    ) -> Self {
         Self {
             player_repository,
             team_repository,
+            community_repository,
         }
     }
 
     pub async fn execute(
         &self,
         dto: AddPlayersIntoTeamDto,
+        user_id: i32,
     ) -> Result<(), (StatusCode, ApiErrorResponse)> {
         let mut team = self
             .team_repository
@@ -38,6 +47,24 @@ impl<PR: PlayerRepository, TR: TeamRepository> AddPlayersIntoTeamUseCase<PR, TR>
                 StatusCode::NOT_FOUND,
                 ApiErrorResponse::new("Team not found".to_string()),
             ))?;
+
+        let belongs = self
+            .community_repository
+            .belongs_to_user(team.community_id, user_id)
+            .await
+            .map_err(|_| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    ApiErrorResponse::new("Failed to verify ownership".to_string()),
+                )
+            })?;
+
+        if !belongs {
+            return Err((
+                StatusCode::FORBIDDEN,
+                ApiErrorResponse::new("Team does not belong to user".to_string()),
+            ));
+        }
 
         let players_ids = dto.players_ids.clone();
         let players = self

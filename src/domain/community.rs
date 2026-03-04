@@ -47,5 +47,7 @@ pub trait CommunityRepository: Send + Sync {
     async fn exists(&self, name: String, user_id: i32) -> anyhow::Result<bool>;
     async fn get_all_by_user(&self, user_id: i32) -> anyhow::Result<Vec<Community>>;
     async fn get_by_id_and_user(&self, id: i32, user_id: i32) -> anyhow::Result<Option<Community>>;
+    async fn belongs_to_user(&self, community_id: i32, user_id: i32) -> anyhow::Result<bool>;
+    async fn get_ids_by_user(&self, user_id: i32) -> anyhow::Result<Vec<i32>>;
     async fn save(&self, community: &Community) -> anyhow::Result<()>;
 }

@@ -173,6 +173,30 @@ impl CommunityRepository for PgCommunityRepository {
         Ok(None)
     }
 
+    async fn belongs_to_user(&self, community_id: i32, user_id: i32) -> anyhow::Result<bool> {
+        let result = sqlx::query!(
+            "SELECT EXISTS(
+                SELECT 1 FROM communities WHERE id = $1 AND user_id = $2 AND enabled = true
+            ) AS exists",
+            community_id, user_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(result.exists.unwrap_or(false))
+    }
+
+    async fn get_ids_by_user(&self, user_id: i32) -> anyhow::Result<Vec<i32>> {
+        let rows = sqlx::query!(
+            "SELECT id FROM communities WHERE user_id = $1 AND enabled = true",
+            user_id
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows.into_iter().map(|r| r.id).collect())
+    }
+
     async fn exists(&self, name: String, user_id: i32) -> anyhow::Result<bool> {
         let result = sqlx::query!(
             "SELECT EXISTS(

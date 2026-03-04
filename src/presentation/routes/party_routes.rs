@@ -2,10 +2,11 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Path, State, Extension},
+    extract::{Path, Query, State, Extension},
     http::StatusCode,
     routing::{delete, get, patch, post},
 };
+use serde::Deserialize;
 
 use crate::{
     application::{
@@ -26,6 +27,11 @@ use crate::{
     },
     shared::{api_error::ApiErrorResponse, api_response::ApiResponse, state::AppState},
 };
+
+#[derive(Deserialize)]
+pub struct GetPartiesQuery {
+    pub community_id: Option<i32>,
+}
 
 pub fn party_routes() -> Router<AppState> {
     Router::new()
@@ -60,12 +66,15 @@ async fn create_party(
 
 async fn get_parties(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Query(query): Query<GetPartiesQuery>,
 ) -> Result<Json<ApiResponse<Vec<IResultGetParty>>>, (StatusCode, Json<ApiErrorResponse>)> {
     let party_repository = PgPartyRepository::new(state.db.clone());
-    let use_case = GetPartiesUseCase::new(Arc::new(party_repository));
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = GetPartiesUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
 
     use_case
-        .execute()
+        .execute(user.id, query.community_id)
         .await
         .map(Json)
         .map_err(|(status, error)| (status, Json(error)))
@@ -73,42 +82,52 @@ async fn get_parties(
 
 async fn end_party(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<EndPartyDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     dto.validate()?;
 
     let team_repository = PgTeamRepository::new(state.db.clone());
     let party_repository = PgPartyRepository::new(state.db.clone());
-    let use_case = EndPartyUseCase::new(Arc::new(party_repository), Arc::new(team_repository));
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = EndPartyUseCase::new(
+        Arc::new(party_repository),
+        Arc::new(team_repository),
+        Arc::new(community_repository),
+    );
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }
 
 async fn delete_party(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Path(party_id): Path<i32>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     let party_repository = PgPartyRepository::new(state.db.clone());
-    let use_case = DeletePartyUseCase::new(Arc::new(party_repository));
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = DeletePartyUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
 
     use_case
-        .execute(party_id)
+        .execute(party_id, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }
 
 async fn get_party_by_id(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Path(party_id): Path<i32>,
 ) -> Result<Json<ApiResponse<IResultGetParty>>, (StatusCode, Json<ApiErrorResponse>)> {
     let party_repository = PgPartyRepository::new(state.db.clone());
-    let use_case = GetPartyByIdUseCase::new(Arc::new(party_repository));
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = GetPartyByIdUseCase::new(Arc::new(party_repository), Arc::new(community_repository));
 
     use_case
-        .execute(party_id)
+        .execute(party_id, user.id)
         .await
         .map(Json)
         .map_err(|(status, error)| (status, Json(error)))

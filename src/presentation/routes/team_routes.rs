@@ -57,36 +57,44 @@ async fn create_team_into_community(
 
 async fn add_players_into_team(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<AddPlayersIntoTeamDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     dto.validate()?;
 
     let team_repository = PgTeamRepository::new(state.db.clone());
     let player_repository = PgPlayerRepository::new(state.db.clone());
-    let use_case =
-        AddPlayersIntoTeamUseCase::new(Arc::new(player_repository), Arc::new(team_repository));
+    let community_repository = PgCommunityRepository::new(state.db.clone());
+    let use_case = AddPlayersIntoTeamUseCase::new(
+        Arc::new(player_repository),
+        Arc::new(team_repository),
+        Arc::new(community_repository),
+    );
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }
 
 async fn delete_players_of_team(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
     Json(dto): Json<DeletePlayersOfTeamDto>,
 ) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     dto.validate()?;
 
     let team_repository = PgTeamRepository::new(state.db.clone());
     let player_repository = PgPlayerRepository::new(state.db.clone());
+    let community_repository = PgCommunityRepository::new(state.db.clone());
     let use_case = DeletePlayersOfTeamUseCase::new(
         Arc::new(player_repository),
         Arc::new(team_repository),
+        Arc::new(community_repository),
     );
 
     use_case
-        .execute(dto)
+        .execute(dto, user.id)
         .await
         .map_err(|(status, error)| (status, Json(error)))
 }
