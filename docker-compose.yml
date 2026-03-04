@@ -2,8 +2,13 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: postgres
+      POSTGRES_USER: gamer_user
+      POSTGRES_PASSWORD: gamer_password
+      POSTGRES_DB: gamer_cm
     ports:
       - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

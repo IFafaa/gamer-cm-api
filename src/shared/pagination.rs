@@ -1,4 +1,6 @@
-use serde::Deserialize;
+use std::fmt;
+
+use serde::{Deserialize, de};
 
 use super::api_response::PaginationMeta;
 
@@ -14,11 +16,36 @@ fn default_limit() -> usize {
     DEFAULT_LIMIT
 }
 
+fn deserialize_usize_from_string<'de, D>(deserializer: D) -> Result<usize, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    struct UsizeOrString;
+
+    impl<'de> de::Visitor<'de> for UsizeOrString {
+        type Value = usize;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a usize or a string containing a usize")
+        }
+
+        fn visit_u64<E: de::Error>(self, v: u64) -> Result<Self::Value, E> {
+            Ok(v as usize)
+        }
+
+        fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
+            v.parse().map_err(de::Error::custom)
+        }
+    }
+
+    deserializer.deserialize_any(UsizeOrString)
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 pub struct PaginationParams {
-    #[serde(default = "default_page")]
+    #[serde(default = "default_page", deserialize_with = "deserialize_usize_from_string")]
     pub page: usize,
-    #[serde(default = "default_limit")]
+    #[serde(default = "default_limit", deserialize_with = "deserialize_usize_from_string")]
     pub limit: usize,
 }
 
