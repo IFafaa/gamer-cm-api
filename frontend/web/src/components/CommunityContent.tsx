@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, X, Trash2, Users, Gamepad2, Crown } from "lucide-react";
+import { Plus, X, Trash2, Users, Gamepad2, Crown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreatePlayerDialog } from "@/components/CreatePlayerDialog";
 import { CreateTeamDialog } from "@/components/CreateTeamDialog";
@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { deletePlayer } from "@/services/player";
 import { deleteCommunity } from "@/services/community";
 import { getParties, deleteParty } from "@/services/party";
-import { Party } from "@/types/community";
+import { Party, PaginationMeta } from "@/types/community";
 
 import { Player, Team, Community } from "@/types/community";
 
@@ -48,30 +48,39 @@ export function CommunityContent({ community, onCommunityUpdate }: CommunityCont
   const [isDeletePartyDialogOpen, setIsDeletePartyDialogOpen] = useState(false);
   const [parties, setParties] = useState<Party[]>([]);
   const [partiesLoading, setPartiesLoading] = useState(false);
+  const [partiesPage, setPartiesPage] = useState(1);
+  const [partiesMeta, setPartiesMeta] = useState<PaginationMeta | null>(null);
+  const PARTIES_PER_PAGE = 5;
   const router = useRouter();
 
   const refreshCommunity = () => {
     if (onCommunityUpdate) {
       onCommunityUpdate();
     }
-    loadParties();
+    loadParties(partiesPage);
   };
 
-  const loadParties = useCallback(async () => {
+  const loadParties = useCallback(async (page: number) => {
     setPartiesLoading(true);
     try {
-      const response = await getParties(community.id);
+      const response = await getParties(community.id, { page, limit: PARTIES_PER_PAGE });
       setParties(response.data);
+      setPartiesMeta(response.meta ?? null);
     } catch (error) {
       console.error('Failed to load parties:', error);
     } finally {
       setPartiesLoading(false);
     }
-  }, [community.id]);
+  }, [community.id, PARTIES_PER_PAGE]);
 
   useEffect(() => {
-    loadParties();
-  }, [community.id, loadParties]);
+    setPartiesPage(1);
+    loadParties(1);
+  }, [community.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    loadParties(partiesPage);
+  }, [partiesPage, loadParties]);
 
   const handleAddPlayersToTeam = (team: Team) => {
     setSelectedTeamForPlayers(team);
@@ -293,7 +302,7 @@ export function CommunityContent({ community, onCommunityUpdate }: CommunityCont
             </p>
           )}
 
-          <div className="space-y-4">
+          <div data-testid="parties-list" className="space-y-4">
             {partiesLoading ? (
               <div className="animate-pulse space-y-2">
                 <div className="h-16 bg-muted rounded"></div>
@@ -308,91 +317,126 @@ export function CommunityContent({ community, onCommunityUpdate }: CommunityCont
                 </p>
               </div>
             ) : (
-              parties.map((party) => (
-                <div key={party.id} className="rounded-md border p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-medium text-foreground">
-                        {party.game_name}
-                      </h3>
-                      {party.finished_at ? (
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                          Finished
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                          Active
-                        </span>
-                    )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!party.finished_at && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEndParty(party)}
-                          className="flex items-center gap-1"
-                        >
-                          <Crown className="w-3 h-3" />
-                          End Party
-                        </Button>
-                      )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteParty(party)}
-                        className="flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    {party.teams.map((team) => (
-                      <div
-                        key={team.id}
-                        className={`flex items-center justify-between p-2 rounded ${
-                          party.team_winner_id === team.id 
-                            ? 'bg-green-100 border-2 border-green-300 shadow-sm' 
-                            : 'bg-muted/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {party.team_winner_id === team.id && (
-                            <Crown className="w-4 h-4 text-yellow-500" />
-                          )}
-                          <span className={`font-medium ${
-                            party.team_winner_id === team.id 
-                              ? 'text-green-800' 
-                              : 'text-foreground'
-                          }`}>
-                            {team.name}
+              <>
+                {parties.map((party) => (
+                  <div key={party.id} className="rounded-md border p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-medium text-foreground">
+                          {party.game_name}
+                        </h3>
+                        {party.finished_at ? (
+                          <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                            Finished
                           </span>
-                          <span className="text-sm text-muted-foreground">
-                            ({team.players.length} players)
-                          </span>
-                        </div>
-                        {party.team_winner_id === team.id && (
-                          <span className="text-sm font-bold text-green-800 bg-green-200 px-2 py-1 rounded-full">
-                            Winner!
+                        ) : (
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                            Active
                           </span>
                         )}
                       </div>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        {!party.finished_at && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEndParty(party)}
+                            className="flex items-center gap-1"
+                          >
+                            <Crown className="w-3 h-3" />
+                            End Party
+                          </Button>
+                        )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteParty(party)}
+                          className="flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      {party.teams.map((team) => (
+                        <div
+                          key={team.id}
+                          className={`flex items-center justify-between p-2 rounded ${
+                            party.team_winner_id === team.id
+                              ? 'bg-green-100 border-2 border-green-300 shadow-sm'
+                              : 'bg-muted/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {party.team_winner_id === team.id && (
+                              <Crown className="w-4 h-4 text-yellow-500" />
+                            )}
+                            <span
+                              className={`font-medium ${
+                                party.team_winner_id === team.id
+                                  ? 'text-green-800'
+                                  : 'text-foreground'
+                              }`}
+                            >
+                              {team.name}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              ({team.players.length} players)
+                            </span>
+                          </div>
+                          {party.team_winner_id === team.id && (
+                            <span className="text-sm font-bold text-green-800 bg-green-200 px-2 py-1 rounded-full">
+                              Winner!
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      Created: {new Date(party.created_at).toLocaleDateString()}
+                      {party.finished_at && (
+                        <span className="ml-4">
+                          Finished: {new Date(party.finished_at).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="mt-3 text-xs text-muted-foreground">
-                    Created: {new Date(party.created_at).toLocaleDateString()}
-                    {party.finished_at && (
-                      <span className="ml-4">
-                        Finished: {new Date(party.finished_at).toLocaleDateString()}
-                      </span>
-                    )}
+                ))}
+
+                {partiesMeta && partiesMeta.total_pages > 1 && (
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">
+                      Page {partiesMeta.page} of {partiesMeta.total_pages}
+                      <span className="ml-2 text-xs">({partiesMeta.total} total)</span>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPartiesPage((p) => Math.max(p - 1, 1))}
+                        disabled={!partiesMeta.has_previous_page}
+                        className="flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Prev
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPartiesPage((p) => p + 1)}
+                        disabled={!partiesMeta.has_next_page}
+                        className="flex items-center gap-1"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))
+                )}
+              </>
             )}
           </div>
         </div>

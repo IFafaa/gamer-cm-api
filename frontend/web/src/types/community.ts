@@ -35,10 +35,27 @@ export interface Community {
   teams: Team[];
 }
 
-export interface CommunitiesResponse {
-  data: Community[];
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+  has_next_page: boolean;
+  has_previous_page: boolean;
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T;
+  meta?: PaginationMeta;
   timestamp: string;
 }
+
+export type CommunitiesResponse = PaginatedResponse<Community[]>;
 
 export interface CreateCommunityRequest {
   name: string;
@@ -47,4 +64,4 @@ export interface CreateCommunityRequest {
 export interface ErrorResponse {
   message: string;
   timestamp: string;
-} 
+}

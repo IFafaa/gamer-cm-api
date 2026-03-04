@@ -117,6 +117,31 @@ describe('getParties', () => {
     });
   });
 
+  it('passes pagination params alongside community_id', async () => {
+    const paginatedPayload = {
+      data: [partyFixture],
+      meta: { total: 20, page: 2, limit: 5, total_pages: 4, has_next_page: true, has_previous_page: true },
+      timestamp: '2024-01-01T00:00:00Z',
+    };
+    (mockedApi.get as jest.Mock).mockResolvedValueOnce({ data: paginatedPayload });
+    const result = await getParties(10, { page: 2, limit: 5 });
+    expect(mockedApi.get).toHaveBeenCalledWith('/parties', {
+      params: { community_id: 10, page: 2, limit: 5 },
+    });
+    expect(result.meta?.page).toBe(2);
+    expect(result.meta?.has_next_page).toBe(true);
+  });
+
+  it('passes pagination params without community filter', async () => {
+    (mockedApi.get as jest.Mock).mockResolvedValueOnce({
+      data: { data: [], timestamp: '2024-01-01T00:00:00Z' },
+    });
+    await getParties(undefined, { page: 1, limit: 10 });
+    expect(mockedApi.get).toHaveBeenCalledWith('/parties', {
+      params: { page: 1, limit: 10 },
+    });
+  });
+
   it('throws generic message on failure', async () => {
     const { default: axios } = await import('axios');
     const error = new axios.AxiosError('error', '500', undefined, undefined, {
