@@ -76,10 +76,10 @@ export async function endParty({ party_id, team_winner_id }: EndPartyParams): Pr
   }
 }
 
-export async function getParties(): Promise<ApiResponse<Party[]>> {
+export async function getParties(communityId?: number): Promise<ApiResponse<Party[]>> {
   try {
-    const { data } = await api.get('/parties');
-    
+    const params = communityId ? { community_id: communityId } : {};
+    const { data } = await api.get('/parties', { params });
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

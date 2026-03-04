@@ -31,6 +31,19 @@ export async function createCommunity(
   }
 }
 
+export async function updateCommunity(id: number, name: string): Promise<void> {
+  try {
+    await api.put(`/communities/${id}`, { name });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to update community"
+      );
+    }
+    throw error;
+  }
+}
+
 export async function deleteCommunity(id: number): Promise<void> {
   try {
     await api.delete(`/communities/${id}`);

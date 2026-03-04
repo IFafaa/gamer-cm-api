@@ -60,9 +60,8 @@ export function CommunityContent({ community, onCommunityUpdate }: CommunityCont
   const loadParties = useCallback(async () => {
     setPartiesLoading(true);
     try {
-      const response = await getParties();
-      const communityParties = response.data.filter(party => party.community_id === community.id);
-      setParties(communityParties);
+      const response = await getParties(community.id);
+      setParties(response.data);
     } catch (error) {
       console.error('Failed to load parties:', error);
     } finally {

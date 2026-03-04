@@ -33,6 +33,17 @@ export async function createPlayer({ nickname, community_id }: CreatePlayerParam
   }
 }
 
+export async function updatePlayer(playerId: number, nickname: string): Promise<void> {
+  try {
+    await api.put(`/players/${playerId}`, { nickname });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to update player');
+    }
+    throw error;
+  }
+}
+
 export async function deletePlayer(playerId: number): Promise<void> {
   try {
     await api.delete(`/players/${playerId}`);
@@ -42,4 +53,4 @@ export async function deletePlayer(playerId: number): Promise<void> {
     }
     throw error;
   }
-} 
+}

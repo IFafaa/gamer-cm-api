@@ -40,6 +40,17 @@ export async function createTeam({ name, community_id }: CreateTeamParams): Prom
   }
 }
 
+export async function updateTeam(teamId: number, name: string): Promise<void> {
+  try {
+    await api.put(`/teams/${teamId}`, { name });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Failed to update team');
+    }
+    throw error;
+  }
+}
+
 export async function addPlayersToTeam({ team_id, players_ids }: AddPlayersToTeamParams): Promise<void> {
   try {
     await api.post('/teams/add-players', {
@@ -64,30 +75,6 @@ export async function deletePlayersOfTeam({ team_id, name, players_ids }: { team
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || 'Failed to update team players');
-    }
-    throw error;
-  }
-}
-
-export async function updateTeam(teamId: number, name: string): Promise<void> {
-  try {
-    await api.patch(`/teams/${teamId}`, {
-      name,
-    });
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || 'Failed to update team');
-    }
-    throw error;
-  }
-}
-
-export async function deleteTeam(teamId: number): Promise<void> {
-  try {
-    await api.delete(`/teams/${teamId}`);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || 'Failed to delete team');
     }
     throw error;
   }
