@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO team_players (team_id, player_id, created_at, updated_at, enabled)\n                 VALUES ($1, $2, NOW(), NOW(), $3)\n                 ON CONFLICT (team_id, player_id)\n                 DO UPDATE SET enabled = $3, updated_at = NOW()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "282678bb3e8cb9d015a91315f2a68e01e34a8d36266edd82ea2a6f9cff8f7f94"
+}

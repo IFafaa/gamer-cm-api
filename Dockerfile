@@ -1,62 +1,63 @@
+# syntax=docker/dockerfile:1.7
+
 # Build stage
 FROM rust:1.85-slim-bookworm AS builder
 
 WORKDIR /app
 
-# Instalar dependencias do sistema para compilacao
-RUN apt-get update && apt-get install -y \
+# Faster + leaner apt
+RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar arquivos de dependencia primeiro (cache de camadas)
+# Use sparse registry for faster dependency resolution
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+
+# Copy dependency files first (layer caching)
 COPY Cargo.toml Cargo.lock* ./
 
-# Criar src dummy para compilar dependencias
+# Create dummy src to compile deps
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 
-# Fixar versoes de dependencias compativeis com Rust 1.85
+# Fix dependency versions compatible with Rust 1.85 (keep behavior)
 RUN cargo update home@0.5.12 --precise 0.5.9
 
-# Compilar apenas dependencias (sera cacheado se nao mudar)
-RUN cargo build --release && rm -rf src
+# Cache cargo registry + target between builds
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release && rm -rf src
 
-# Copiar codigo fonte real
+# Copy real source
 COPY src ./src
 COPY migrations ./migrations
 COPY swagger.json ./swagger.json
 
-# Copiar cache do sqlx para build offline (sem precisar de banco de dados)
+# SQLx offline cache
 COPY .sqlx ./.sqlx
-
-# Habilitar modo offline do sqlx (usa cache pre-gerado)
 ENV SQLX_OFFLINE=true
 
-# Recompilar com codigo real
-RUN touch src/main.rs && cargo build --release
+# Final build with cache
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release
 
-# Runtime stage - imagem minima
+# Runtime stage
 FROM debian:bookworm-slim
 
-# Instalar apenas runtime dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copiar binario compilado
 COPY --from=builder /app/target/release/game_gc_rust /app/server
-
-# Copiar migrations para rodar na inicializacao
 COPY --from=builder /app/migrations ./migrations
 
-# Configurar porta padrao
 ENV PORT=8080
 EXPOSE 8080
 
-# Executar como usuario nao-root por seguranca
 RUN useradd -r -s /bin/false appuser
 USER appuser
 

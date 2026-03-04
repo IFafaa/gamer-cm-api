@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT \n                pl.id as player_id,\n                pl.nickname as player_nickname,\n                COUNT(DISTINCT pt.party_id) as total_parties,\n                COUNT(DISTINCT CASE WHEN p.team_winner_id = tp.team_id THEN p.id END) as wins\n            FROM players pl\n            INNER JOIN team_players tp ON tp.player_id = pl.id AND tp.enabled = true\n            INNER JOIN party_teams pt ON pt.team_id = tp.team_id\n            INNER JOIN parties p ON p.id = pt.party_id AND p.enabled = true\n            WHERE pl.community_id = $1 AND pl.enabled = true\n            GROUP BY pl.id, pl.nickname\n            ORDER BY wins DESC, total_parties DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "player_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "player_nickname",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "total_parties",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "wins",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "92984101c668fe322eeb129a917dec745366637c3eaf0f89dce0d1ad3f0c29fb"
+}
