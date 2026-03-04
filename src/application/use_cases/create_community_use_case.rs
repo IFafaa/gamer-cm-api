@@ -60,3 +60,69 @@ impl<R: CommunityRepository> CreateCommunityUseCase<R> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mockall::mock;
+
+    mock! {
+        pub CommunityRepo {}
+        #[async_trait::async_trait]
+        impl CommunityRepository for CommunityRepo {
+            async fn insert(&self, community: &Community) -> anyhow::Result<()>;
+            async fn exists(&self, name: String, user_id: i32) -> anyhow::Result<bool>;
+            async fn get_all_by_user(&self, user_id: i32) -> anyhow::Result<Vec<Community>>;
+            async fn get_by_id_and_user(&self, id: i32, user_id: i32) -> anyhow::Result<Option<Community>>;
+            async fn belongs_to_user(&self, community_id: i32, user_id: i32) -> anyhow::Result<bool>;
+            async fn get_ids_by_user(&self, user_id: i32) -> anyhow::Result<Vec<i32>>;
+            async fn save(&self, community: &Community) -> anyhow::Result<()>;
+        }
+    }
+
+    #[tokio::test]
+    async fn test_create_community_success() {
+        let mut mock = MockCommunityRepo::new();
+        mock.expect_exists().returning(|_, _| Ok(false));
+        mock.expect_insert().returning(|_| Ok(()));
+
+        let use_case = CreateCommunityUseCase::new(Arc::new(mock));
+        let dto = CreateCommunityDto { name: "Pro Gamers".to_string() };
+        let result = use_case.execute(dto, 1).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_create_community_empty_name_returns_bad_request() {
+        let mock = MockCommunityRepo::new();
+        let use_case = CreateCommunityUseCase::new(Arc::new(mock));
+        let dto = CreateCommunityDto { name: "".to_string() };
+        let result = use_case.execute(dto, 1).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn test_create_community_already_exists_returns_conflict() {
+        let mut mock = MockCommunityRepo::new();
+        mock.expect_exists().returning(|_, _| Ok(true));
+
+        let use_case = CreateCommunityUseCase::new(Arc::new(mock));
+        let dto = CreateCommunityDto { name: "Existing".to_string() };
+        let result = use_case.execute(dto, 1).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn test_create_community_repository_error_returns_internal_error() {
+        let mut mock = MockCommunityRepo::new();
+        mock.expect_exists().returning(|_, _| Err(anyhow::anyhow!("db error")));
+
+        let use_case = CreateCommunityUseCase::new(Arc::new(mock));
+        let dto = CreateCommunityDto { name: "My Community".to_string() };
+        let result = use_case.execute(dto, 1).await;
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap().0, StatusCode::INTERNAL_SERVER_ERROR);
+    }
+}
