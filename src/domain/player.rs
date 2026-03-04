@@ -43,3 +43,39 @@ pub trait PlayerRepository: Send + Sync {
     async fn get_by_ids(&self, ids: Vec<i32>) -> anyhow::Result<Vec<Player>>;
     async fn save(&self, player: &Player) -> anyhow::Result<()>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_player_new_sets_fields() {
+        let player = Player::new("xXSniper99Xx".to_string(), 3);
+        assert_eq!(player.nickname, "xXSniper99Xx");
+        assert_eq!(player.community_id, 3);
+        assert_eq!(player.id, 0);
+        assert!(player.enabled);
+    }
+
+    #[test]
+    fn test_player_is_enabled_by_default() {
+        let player = Player::new("nick".to_string(), 1);
+        assert!(player.is_enabled());
+    }
+
+    #[test]
+    fn test_player_disable() {
+        let mut player = Player::new("nick".to_string(), 1);
+        player.disable();
+        assert!(!player.is_enabled());
+        assert!(!player.enabled);
+    }
+
+    #[test]
+    fn test_player_disable_idempotent() {
+        let mut player = Player::new("nick".to_string(), 1);
+        player.disable();
+        player.disable();
+        assert!(!player.is_enabled());
+    }
+}
