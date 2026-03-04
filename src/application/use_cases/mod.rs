@@ -10,6 +10,7 @@ pub mod delete_players_of_team_use_case;
 pub mod end_party_use_case;
 pub mod get_communities_use_case;
 pub mod get_community_by_id_use_case;
+pub mod get_community_stats_use_case;
 pub mod get_parties_use_case;
 pub mod get_party_by_id_use_case;
 pub mod login_user_use_case;

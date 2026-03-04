@@ -8,6 +8,7 @@ use super::routes::auth_routes;
 use super::routes::community_routes;
 use super::routes::party_routes;
 use super::routes::player_routes;
+use super::routes::stats_routes;
 use super::routes::team_routes;
 
 pub fn create_routes(app_state: AppState) -> Router {
@@ -16,6 +17,7 @@ pub fn create_routes(app_state: AppState) -> Router {
         .nest("/players", player_routes::player_routes())
         .nest("/teams", team_routes::team_routes())
         .nest("/parties", party_routes::party_routes())
+        .nest("/stats", stats_routes::stats_routes())
         .with_state(app_state.clone())
         .layer(axum::middleware::from_fn(auth_middleware));
 
