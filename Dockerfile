@@ -33,10 +33,6 @@ COPY src ./src
 COPY migrations ./migrations
 COPY swagger.json ./swagger.json
 
-# SQLx offline cache
-COPY .sqlx ./.sqlx
-ENV SQLX_OFFLINE=true
-
 # Final build with cache
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
