@@ -21,3 +21,44 @@ impl PasswordService {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hash_password_produces_valid_hash() {
+        let hash = PasswordService::hash_password("mypassword123").unwrap();
+        assert!(!hash.is_empty());
+        assert!(hash.starts_with("$argon2"));
+    }
+
+    #[test]
+    fn test_verify_correct_password_returns_true() {
+        let password = "secret_pass_42";
+        let hash = PasswordService::hash_password(password).unwrap();
+        let result = PasswordService::verify_password(password, &hash).unwrap();
+        assert!(result);
+    }
+
+    #[test]
+    fn test_verify_wrong_password_returns_false() {
+        let hash = PasswordService::hash_password("correct_password").unwrap();
+        let result = PasswordService::verify_password("wrong_password", &hash).unwrap();
+        assert!(!result);
+    }
+
+    #[test]
+    fn test_same_password_produces_different_hashes() {
+        let hash1 = PasswordService::hash_password("password").unwrap();
+        let hash2 = PasswordService::hash_password("password").unwrap();
+        // salts are random — hashes must differ
+        assert_ne!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_verify_invalid_hash_returns_error() {
+        let result = PasswordService::verify_password("password", "not_a_valid_hash");
+        assert!(result.is_err());
+    }
+}
