@@ -1,36 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Community } from "@/types/community";
+import { useCallback, useEffect, useState } from "react";
+import { Community, PaginationMeta } from "@/types/community";
 import { getCommunities } from "@/services/community";
 import { CreateCommunityDialog } from "./CreateCommunityDialog";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+
+const COMMUNITIES_PER_PAGE = 6;
 
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [communities, setCommunities] = useState<Community[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const loadCommunities = async () => {
+  const loadCommunities = useCallback(async (page: number) => {
+    setLoading(true);
     try {
-      const response = await getCommunities();
+      const response = await getCommunities({ page, limit: COMMUNITIES_PER_PAGE });
+      const pagination = response.meta ?? null;
+      const totalPages = pagination?.total_pages ?? 0;
+
+      if (pagination && totalPages > 0 && page > totalPages) {
+        setCurrentPage(totalPages);
+        return;
+      }
+
+      if (pagination && pagination.total === 0 && page !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+
       setCommunities(response.data);
+      setMeta(pagination);
       setError(null);
     } catch (err) {
-      setError('Failed to load communities');
+      setError("Failed to load communities");
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadCommunities();
-  }, [pathname]);
+    loadCommunities(currentPage);
+  }, [currentPage, pathname, loadCommunities]);
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => Math.max(prev - 1, 1));
+    }
+  };
+
+  const handleNextPage = () => {
+    if (meta?.has_next_page) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,13 +111,37 @@ export function Sidebar() {
           )}
         </div>
 
+        {meta && (
+          <div className="flex flex-col items-center gap-2 py-3">
+            <span className="text-xs text-sidebar-foreground/80">
+              Page {meta.total_pages === 0 ? 0 : meta.page} / {Math.max(meta.total_pages, 1)}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="w-8 h-8 rounded-full bg-sidebar-accent/60 text-sidebar-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={!meta.has_next_page}
+                className="w-8 h-8 rounded-full bg-sidebar-accent/60 text-sidebar-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => setIsCreateDialogOpen(true)}
           className={`w-12 h-12 rounded-full flex items-center justify-center
                      transition-all duration-200 cursor-pointer ${
             communities.length === 0
-              ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg animate-pulse'
-              : 'bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-accent-foreground'
+              ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg animate-pulse"
+              : "bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-accent-foreground"
           }`}
           title={communities.length === 0 ? "Create your first community!" : "Create Community"}
         >
@@ -97,8 +152,8 @@ export function Sidebar() {
       <CreateCommunityDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
-        onSuccess={loadCommunities}
+        onSuccess={() => loadCommunities(currentPage)}
       />
     </>
   );
-} 
+}

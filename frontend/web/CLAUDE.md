@@ -137,6 +137,5 @@ interface CommunityStats {
 - Sem testes (unit ou e2e)
 - Stats/ranking ainda não tem UI (service pronto, falta componente)
 - Update de community/player/team: services prontos, falta UI de edição inline
-- Sem paginação no front (API também não implementou ainda)
 - Sem refresh token — logout forçado após 24h
 - Sem i18n (interface em inglês, projeto brasileiro)

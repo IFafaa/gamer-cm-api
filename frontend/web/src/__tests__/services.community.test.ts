@@ -43,7 +43,25 @@ describe('getCommunities', () => {
     const result = await getCommunities();
     expect(result.data).toHaveLength(1);
     expect(result.data[0].name).toBe('Pro Gamers');
-    expect(mockedApi.get).toHaveBeenCalledWith('/communities');
+    expect(mockedApi.get).toHaveBeenCalledWith('/communities', undefined);
+  });
+
+  it('passes pagination params to the API', async () => {
+    const paginatedPayload = {
+      ...communitiesPayload,
+      meta: { total: 10, page: 2, limit: 3, total_pages: 4, has_next_page: true, has_previous_page: true },
+    };
+    (mockedApi.get as jest.Mock).mockResolvedValueOnce({ data: paginatedPayload });
+    const result = await getCommunities({ page: 2, limit: 3 });
+    expect(mockedApi.get).toHaveBeenCalledWith('/communities', { params: { page: 2, limit: 3 } });
+    expect(result.meta?.page).toBe(2);
+    expect(result.meta?.has_next_page).toBe(true);
+  });
+
+  it('returns response without meta when API omits it', async () => {
+    (mockedApi.get as jest.Mock).mockResolvedValueOnce({ data: communitiesPayload });
+    const result = await getCommunities({ page: 1, limit: 10 });
+    expect(result.meta).toBeUndefined();
   });
 
   it('throws with server error message on failure', async () => {

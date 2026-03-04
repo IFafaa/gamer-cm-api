@@ -1,10 +1,17 @@
 import axios from "axios";
-import { CommunitiesResponse, CreateCommunityRequest } from "@/types/community";
+import {
+  CommunitiesResponse,
+  CreateCommunityRequest,
+  PaginationParams,
+} from "@/types/community";
 import api from "@/lib/api";
 
-export async function getCommunities(): Promise<CommunitiesResponse> {
+export async function getCommunities(
+  params?: PaginationParams
+): Promise<CommunitiesResponse> {
   try {
-    const { data } = await api.get("/communities");
+    const config = params ? { params } : undefined;
+    const { data } = await api.get("/communities", config);
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

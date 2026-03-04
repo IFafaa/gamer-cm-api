@@ -1,5 +1,6 @@
 import axios from 'axios';
 import api from '@/lib/api';
+import { Party, PaginatedResponse, PaginationParams } from '@/types/community';
 
 interface CreatePartyParams {
   game_name: string;
@@ -12,39 +13,7 @@ interface EndPartyParams {
   team_winner_id?: number;
 }
 
-interface Party {
-  id: number;
-  community_id: number;
-  game_name: string;
-  team_winner_id?: number;
-  finished_at?: string;
-  created_at: string;
-  updated_at: string;
-  teams: Team[];
-}
-
-interface Team {
-  id: number;
-  name: string;
-  community_id: number;
-  players: Player[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface Player {
-  id: number;
-  nickname: string;
-  community_id: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ApiResponse<T> {
-  data: T;
-  timestamp: string;
-}
-
+type ApiResponse<T> = PaginatedResponse<T>;
 
 export async function createParty({ game_name, teams_ids, community_id }: CreatePartyParams): Promise<ApiResponse<Party>> {
   try {
@@ -76,10 +45,16 @@ export async function endParty({ party_id, team_winner_id }: EndPartyParams): Pr
   }
 }
 
-export async function getParties(communityId?: number): Promise<ApiResponse<Party[]>> {
+export async function getParties(
+  communityId?: number,
+  params?: PaginationParams
+): Promise<ApiResponse<Party[]>> {
   try {
-    const params = communityId ? { community_id: communityId } : {};
-    const { data } = await api.get('/parties', { params });
+    const query = {
+      ...(params ?? {}),
+      community_id: communityId,
+    };
+    const { data } = await api.get('/parties', { params: query });
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
