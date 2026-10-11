@@ -6,3 +6,4 @@ target
 *.md
 Dockerfile
 docker-compose.yml
+frontend

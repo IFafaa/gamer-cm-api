@@ -36,8 +36,8 @@ Before you begin, make sure you have installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd gamer-cm/gamer-cm-front
+git clone https://github.com/IFafaa/gamer-cm.git
+cd gamer-cm/frontend/web
 ```
 
 ### 2. Install Dependencies
@@ -83,12 +83,11 @@ pnpm dev
 ### Development
 
 ```bash
-# Terminal 1: Run the backend (gamer-cm-api)
-cd ../gamer-cm-api
+# Terminal 1: Run the backend (from the repository root)
 cargo run
 
 # Terminal 2: Run the frontend
-cd gamer-cm-front
+cd frontend/web
 npm run dev
 ```
 
@@ -107,7 +106,7 @@ When everything is working correctly, you will see:
 ## 📁 Project Structure
 
 ```
-gamer-cm-front/
+frontend/web/
 ├── src/
 │   ├── app/                    # Pages and layouts (App Router)
 │   │   ├── (authenticated)/    # Protected routes

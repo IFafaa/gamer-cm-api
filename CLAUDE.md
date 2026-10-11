@@ -3,6 +3,8 @@
 ## Overview
 API REST para gerenciamento de comunidades gamer. Organiza players, teams, parties (partidas) e rankings.
 
+> Monorepo: a API fica na raiz; o frontend web (Next.js) fica em `frontend/web/` e tem seu próprio `CLAUDE.md`.
+
 ## Stack
 - **Rust** (1.85+) + **Axum** (web framework)
 - **SQLx** (compile-time checked queries) + **PostgreSQL 13**

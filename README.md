@@ -1,6 +1,13 @@
-# Gamers CM - Player Community Management API
+# Gamers CM - Player Community Management
 
-A comprehensive REST API built with Rust for managing gaming communities, players, teams, and events. Designed for scalability and performance in modern gaming environments.
+A platform for managing gaming communities, players, teams, and events: a REST API built with Rust and a web frontend built with Next.js, living together in this repository.
+
+| Part | Path | Stack |
+| --- | --- | --- |
+| API | [`/`](.) (repository root) | Rust + Axum + SQLx + PostgreSQL |
+| Web | [`frontend/web`](frontend/web) | Next.js + React + Tailwind CSS |
+
+The rest of this document covers the API. See [`frontend/web/README.md`](frontend/web/README.md) for the web app.
 
 ## 🚀 Technologies Used
 
@@ -78,7 +85,7 @@ sudo usermod -aG docker $USER
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/IFafaa/gamer-cm.git
 cd gamer-cm
 ```
 
@@ -138,6 +145,10 @@ docker-compose up -d
 
 # Terminal 2: Run the server
 cargo run
+
+# Terminal 3: Run the web app
+cd frontend/web
+npm install && npm run dev
 ```
 
 The server will be available at: `http://localhost:8080`
@@ -161,6 +172,7 @@ gamer-cm/
 │   ├── infra/               # Infrastructure implementations
 │   ├── presentation/        # Controllers and DTOs
 │   └── shared/              # Shared utilities
+├── frontend/web/            # Next.js web app (see its README)
 ├── migrations/              # Database migrations
 ├── docker-compose.yml       # PostgreSQL configuration
 ├── .env                     # Environment variables
