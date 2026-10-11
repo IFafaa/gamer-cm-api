@@ -1,177 +1,38 @@
-# Gamers CM - Frontend
+# Gamers CM - Web
 
-A modern web application built with Next.js for gaming community management. Intuitive and responsive interface for managing communities, players, teams, and gaming events.
+Next.js frontend for [Gamers CM](../../README.md).
 
-## 🚀 Technologies Used
+**Stack:** Next.js 15, React 19, TypeScript, Tailwind CSS, Radix UI (shadcn/ui), Axios, Jest.
 
-- **Next.js 15** - React framework for modern web applications
-- **React 19** - Library for user interfaces
-- **TypeScript** - JavaScript superset with static typing
-- **Tailwind CSS** - Utility-first CSS framework for responsive design
-- **Radix UI** - Accessible and customizable components
-- **Axios** - HTTP client for API communication
-- **Lucide React** - Modern and consistent icons
+## Running
 
-## ✨ Features
-
-- **User Authentication** - Secure login and registration
-- **Community Management** - Create and administer gaming communities
-- **Player System** - Player profiles and member management
-- **Team System** - Team formation and management within communities
-- **Event Management** - Create and manage matches and tournaments
-- **Responsive Interface** - Design adaptable for desktop and mobile
-- **Dark/Light Theme** - Support for dark and light modes
-- **Reusable Components** - Consistent UI component library
-
-## 📋 Prerequisites
-
-Before you begin, make sure you have installed:
-
-- **Node.js** (version 18 or higher)
-- **npm** or **yarn** or **pnpm**
-- **Git**
-
-## 🛠️ Setup and Installation
-
-### 1. Clone the Repository
+The API must be running first (see the [root README](../../README.md)).
 
 ```bash
-git clone https://github.com/IFafaa/gamer-cm.git
-cd gamer-cm/frontend/web
-```
-
-### 2. Install Dependencies
-
-```bash
-# Using npm
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL points to the API
 npm install
-
-# Or using yarn
-yarn install
-
-# Or using pnpm
-pnpm install
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env.local` file in the project root:
-
-```env
-# Backend API URL
-NEXT_PUBLIC_API_URL=http://localhost:8080
-
-# Environment
-NODE_ENV=development
-```
-
-### 4. Run the Project
-
-```bash
-# Development mode
-npm run dev
-
-# Or using yarn
-yarn dev
-
-# Or using pnpm
-pnpm dev
-```
-
-## 🚀 Running the Project
-
-### Development
-
-```bash
-# Terminal 1: Run the backend (from the repository root)
-cargo run
-
-# Terminal 2: Run the frontend
-cd frontend/web
 npm run dev
 ```
 
-The application will be available at: `http://localhost:3000`
+Open `http://localhost:3000`.
 
-### Success Logs
+## Scripts
 
-When everything is working correctly, you will see:
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Dev server with Turbopack |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Lint |
+| `npm test` | Run tests |
+
+## Structure
 
 ```
-✓ Ready in 2.3s
-✓ Local:        http://localhost:3000
-✓ Network:      http://192.168.1.100:3000
+src/
+├── app/          # Pages (App Router); protected routes under (authenticated)/
+├── components/   # UI components (ui/ holds the base Radix components)
+├── contexts/     # React contexts (auth)
+├── services/     # API calls
+└── types/        # TypeScript types
 ```
-
-## 📁 Project Structure
-
-```
-frontend/web/
-├── src/
-│   ├── app/                    # Pages and layouts (App Router)
-│   │   ├── (authenticated)/    # Protected routes
-│   │   ├── login/              # Login page
-│   │   └── register/           # Registration page
-│   ├── components/             # Reusable components
-│   │   ├── ui/                 # Base components (Radix UI)
-│   │   └── *.tsx               # Specific components
-│   ├── contexts/               # React contexts (Auth, etc.)
-│   ├── lib/                    # Utilities and configurations
-│   ├── services/               # API services
-│   └── types/                  # TypeScript definitions
-├── public/                     # Static files
-├── components.json             # shadcn/ui configuration
-├── tailwind.config.ts          # Tailwind configuration
-└── next.config.ts              # Next.js configuration
-```
-
-## 🎨 Design System
-
-The project uses a consistent design system based on:
-
-- **Radix UI** - Accessible primitive components
-- **Tailwind CSS** - CSS utilities for styling
-- **Lucide React** - Consistent icons
-- **CSS Variables** - Customizable color system
-
-### Main Colors
-
-```css
---primary: 222.2 84% 4.9%
---secondary: 210 40% 98%
---accent: 210 40% 96%
---muted: 210 40% 96%
-```
-
-## 🔧 Available Scripts
-
-```bash
-# Development with Turbopack (faster)
-npm run dev
-
-# Build for production
-npm run build
-
-# Run production build
-npm run start
-
-# Code linting
-npm run lint
-```
-
-## 🧪 Testing the Application
-
-```bash
-# Check if the server is running
-curl http://localhost:3000
-
-# Or open in browser
-open http://localhost:3000
-```
-
-## 📚 Additional Resources
-
-- [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features
-- [React Documentation](https://react.dev) - Official React guide
-- [Tailwind CSS](https://tailwindcss.com/docs) - Tailwind documentation
-- [Radix UI](https://www.radix-ui.com) - Accessible components
