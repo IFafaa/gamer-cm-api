@@ -1,0 +1,65 @@
+import axios from "axios";
+import {
+  CommunitiesResponse,
+  CreateCommunityRequest,
+  PaginationParams,
+} from "@/types/community";
+import api from "@/lib/api";
+
+export async function getCommunities(
+  params?: PaginationParams
+): Promise<CommunitiesResponse> {
+  try {
+    const config = params ? { params } : undefined;
+    const { data } = await api.get("/communities", config);
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch communities"
+      );
+    }
+    throw error;
+  }
+}
+
+export async function createCommunity(
+  data: CreateCommunityRequest
+): Promise<void> {
+  try {
+    await api.post("/communities", data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to create community"
+      );
+    }
+    throw error;
+  }
+}
+
+export async function updateCommunity(id: number, name: string): Promise<void> {
+  try {
+    await api.put(`/communities/${id}`, { name });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to update community"
+      );
+    }
+    throw error;
+  }
+}
+
+export async function deleteCommunity(id: number): Promise<void> {
+  try {
+    await api.delete(`/communities/${id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to delete community"
+      );
+    }
+    throw error;
+  }
+}
